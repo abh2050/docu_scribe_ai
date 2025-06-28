@@ -1,3 +1,4 @@
+![](https://github.com/abh2050/docu_scribe_ai/blob/main/assets/ChatGPT%20Image%20Jun%2028%2C%202025%2C%2003_27_16%20PM.png)
 # 🩺 DocuScribe AI - Agentic Ambient Scribing System
 
 DocuScribe AI is an intelligent, agentic system that transforms clinical conversations into structured medical documentation. Using advanced LLM orchestration and medical knowledge systems, it generates SOAP notes, extracts medical concepts, and suggests ICD-10 codes while maintaining human oversight through an intuitive feedback loop.
