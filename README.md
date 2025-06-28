@@ -4,7 +4,7 @@
 DocuScribe AI is an intelligent, agentic system that transforms clinical conversations into structured medical documentation. Using advanced LLM orchestration and medical knowledge systems, it generates SOAP notes, extracts medical concepts, and suggests ICD-10 codes while maintaining human oversight through an intuitive feedback loop.
 
 ## Presentation
-[📎 Open the Web Presentation](https://gemini.google.com/share/9d8256f3071f)
+https://abh2050.github.io/docu_scribe_ai/
 
 ## 🎯 Project Overview
 
