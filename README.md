@@ -293,7 +293,7 @@ docker run -p 8501:8501 docuscribe-ai
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License
 
 ## 🙏 Acknowledgments
 
