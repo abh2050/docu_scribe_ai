@@ -303,13 +303,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **FHIR Standards**: HL7 FHIR Implementation Guide
 - **LLM Providers**: OpenAI, Google, Anthropic for powerful language models
 
-## 📞 Support
-
-For questions, issues, or contributions:
-- Create an issue on GitHub
-- Email: support@docuscribe.ai
-- Documentation: [docs.docuscribe.ai](https://docs.docuscribe.ai)
-
 ## 🔮 Roadmap
 
 ### Version 2.0
@@ -324,7 +317,3 @@ For questions, issues, or contributions:
 - [ ] Predictive health analytics
 - [ ] Population health metrics
 - [ ] Advanced privacy controls (differential privacy)
-
----
-
-**Built with ❤️ for healthcare providers to spend more time with patients and less time with paperwork.**
