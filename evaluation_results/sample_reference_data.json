@@ -1,0 +1,42 @@
+{
+  "transcripts": [
+    {
+      "id": "sample_1",
+      "transcript": "\n                Doctor: Good morning, Mrs. Johnson. How are you feeling today?\n                Patient: Hi doctor. I've been having this persistent headache for the past three days.\n                Doctor: Can you describe the headache? Is it throbbing or constant?\n                Patient: It's more of a constant ache, especially behind my eyes.\n                Doctor: Any nausea or sensitivity to light?\n                Patient: Yes, bright lights make it worse.\n                Doctor: Have you taken any medication?\n                Patient: Just some ibuprofen, but it doesn't help much.\n                Doctor: Let me check your blood pressure. It's 150 over 95, which is elevated.\n                ",
+      "reference_soap": {
+        "subjective": "Patient reports persistent headache for 3 days, described as constant ache behind eyes. Associated with photophobia. Ibuprofen provides minimal relief.",
+        "objective": "Blood pressure 150/95 mmHg (elevated). Patient appears uncomfortable.",
+        "assessment": "Headache with hypertension. Possible tension headache vs. hypertensive headache.",
+        "plan": "1. Blood pressure monitoring 2. Consider antihypertensive medication 3. Follow-up in 1 week 4. Return if symptoms worsen"
+      },
+      "reference_concepts": [
+        {
+          "concept": "headache",
+          "category": "symptom"
+        },
+        {
+          "concept": "photophobia",
+          "category": "symptom"
+        },
+        {
+          "concept": "hypertension",
+          "category": "condition"
+        },
+        {
+          "concept": "ibuprofen",
+          "category": "medication"
+        }
+      ],
+      "reference_icd_codes": [
+        {
+          "code": "R51.9",
+          "description": "Headache, unspecified"
+        },
+        {
+          "code": "I10",
+          "description": "Essential hypertension"
+        }
+      ]
+    }
+  ]
+}

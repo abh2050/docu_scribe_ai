@@ -1,0 +1,52 @@
+code,description,category
+I10,Essential (primary) hypertension,Cardiovascular
+I11,Hypertensive heart disease,Cardiovascular
+I12,Hypertensive chronic kidney disease,Cardiovascular
+I13,Hypertensive heart and chronic kidney disease,Cardiovascular
+I15,Secondary hypertension,Cardiovascular
+I20,Angina pectoris,Cardiovascular
+I21,Acute myocardial infarction,Cardiovascular
+I25,Chronic ischemic heart disease,Cardiovascular
+I48,Atrial fibrillation and flutter,Cardiovascular
+I50,Heart failure,Cardiovascular
+E08,Diabetes mellitus due to underlying condition,Endocrine
+E09,Drug or chemical induced diabetes mellitus,Endocrine
+E10,Type 1 diabetes mellitus,Endocrine
+E11,Type 2 diabetes mellitus,Endocrine
+E13,Other specified diabetes mellitus,Endocrine
+E78,Disorders of lipoprotein metabolism and other lipidemias,Endocrine
+E66,Overweight and obesity,Endocrine
+E03,Other hypothyroidism,Endocrine
+E05,Thyrotoxicosis [hyperthyroidism],Endocrine
+F32,Major depressive disorder single episode,Mental Health
+F33,Major depressive disorder recurrent,Mental Health
+F41,Anxiety disorders,Mental Health
+F43,Reaction to severe stress and adjustment disorders,Mental Health
+F90,Attention-deficit hyperactivity disorders,Mental Health
+J44,Other chronic obstructive pulmonary disease,Respiratory
+J45,Asthma,Respiratory
+J06,Acute upper respiratory infections of multiple and unspecified sites,Respiratory
+J18,Pneumonia unspecified organism,Respiratory
+J20,Acute bronchitis,Respiratory
+M79.1,Myalgia,Musculoskeletal
+M79.2,Neuralgia and neuritis unspecified,Musculoskeletal
+M25,Other joint disorder not elsewhere classified,Musculoskeletal
+M54,Dorsalgia,Musculoskeletal
+M17,Osteoarthritis of knee,Musculoskeletal
+N39,Other disorders of urinary system,Genitourinary
+N18,Chronic kidney disease,Genitourinary
+N40,Benign prostatic hyperplasia,Genitourinary
+K21,Gastro-esophageal reflux disease,Digestive
+K59,Other functional intestinal disorders,Digestive
+R50,Fever unspecified,Symptoms
+R51,Headache,Symptoms
+R06.02,Shortness of breath,Symptoms
+R10,Abdominal and pelvic pain,Symptoms
+R42,Dizziness and giddiness,Symptoms
+R25.1,Tremor unspecified,Symptoms
+R53,Malaise and fatigue,Symptoms
+Z00.00,Encounter for general adult medical examination without abnormal findings,Factors
+Z01.411,Encounter for gynecological examination,Factors
+Z12.11,Encounter for screening for malignant neoplasm of colon,Factors
+Z51.11,Encounter for antineoplastic chemotherapy,Factors
+Z87,Personal history of other diseases and conditions,Factors

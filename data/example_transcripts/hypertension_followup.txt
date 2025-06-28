@@ -1,0 +1,19 @@
+Doctor: Good morning, Mrs. Johnson. How have you been feeling since our last visit?
+
+Patient: Good morning, Dr. Smith. I've been doing okay, but I've been having some headaches lately, especially in the mornings.
+
+Doctor: I see. When did these headaches start? And have you been taking your blood pressure medication regularly?
+
+Patient: The headaches started about two weeks ago. And yes, I've been taking my lisinopril every morning, 10mg as prescribed.
+
+Doctor: Good. Let me check your blood pressure today. *takes blood pressure* Your blood pressure is 150 over 95, which is higher than we'd like to see.
+
+Patient: Is that bad? I've been trying to watch my salt intake like you suggested.
+
+Doctor: It's elevated, but we can manage this. The headaches could be related to the higher blood pressure. I think we need to increase your lisinopril to 20mg daily. Also, let's add some labs to check your kidney function.
+
+Patient: Okay, whatever you think is best. Should I be worried?
+
+Doctor: No need to worry. With the medication adjustment and continued lifestyle modifications, we should see improvement. I'd like to see you back in 4 weeks to recheck your blood pressure.
+
+Patient: Alright, I'll schedule that before I leave. Thank you, doctor.

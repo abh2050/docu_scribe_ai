@@ -1,0 +1,21 @@
+Doctor: Hello Mr. Davis, I see you're here for your diabetes follow-up. How have you been managing your blood sugar?
+
+Patient: Hi Dr. Brown. It's been challenging, honestly. My glucose levels have been running higher than usual, around 180-200 in the mornings.
+
+Doctor: That is concerning. Are you taking your metformin as prescribed? And how has your diet been?
+
+Patient: Yes, I take my metformin 1000mg twice daily. But I'll admit, I've been less careful with my diet lately. The holidays were tough.
+
+Doctor: I understand. Let's check your A1C today - when was your last one? Also, let me examine your feet.
+
+Patient: My last A1C was about 3 months ago, it was 8.2. I know that's not good.
+
+Doctor: *examining feet* Your feet look good, no sores or problems. But yes, we need to get that A1C down. I'm going to add insulin to your regimen - we'll start with a long-acting insulin at bedtime.
+
+Patient: Insulin? Is my diabetes getting worse?
+
+Doctor: It's progressing, but this is a normal part of diabetes management for many people. The insulin will help us get better control. I'll also refer you to our diabetes educator.
+
+Patient: Okay, I guess I need to take this more seriously.
+
+Doctor: You're doing well by coming in regularly. Let's also schedule you for an eye exam and check your kidney function with some blood work.
