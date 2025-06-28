@@ -83,7 +83,7 @@ The system follows an agentic architecture with specialized agents for different
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/abh2050/docu_scribe_ai.git
 cd docu_sciibe_ai
 ```
 
