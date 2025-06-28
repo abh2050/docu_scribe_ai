@@ -281,8 +281,6 @@ streamlit run app.py
 docker build -t docuscribe-ai .
 docker run -p 8501:8501 docuscribe-ai
 
-# Using cloud platforms (AWS, GCP, Azure)
-# See deployment guides in /docs folder
 ```
 
 ## 🤝 Contributing
