@@ -17,6 +17,12 @@ https://abh2050.github.io/docu_scribe_ai/
 - Allows user feedback and corrections (human-in-the-loop)
 - Stores notes in structured format (FHIR-like JSON) for EHR integration
 
+## Live App
+https://docuscribeai.streamlit.app/
+![](https://github.com/abh2050/docu_scribe_ai/blob/main/assets/pic1.png)
+![](https://github.com/abh2050/docu_scribe_ai/blob/main/assets/pic2.png)
+![](https://github.com/abh2050/docu_scribe_ai/blob/main/assets/pic3.png)
+![](https://github.com/abh2050/docu_scribe_ai/blob/main/assets/pic4.png)
 ## 🏗️ Architecture
 
 The system follows an agentic architecture with specialized agents for different tasks:
