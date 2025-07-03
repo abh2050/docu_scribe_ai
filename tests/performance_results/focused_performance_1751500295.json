@@ -1,0 +1,117 @@
+{
+  "timestamp": 1751500295.382665,
+  "icd_performance": {
+    "icd_initialization": {
+      "time_ms": 190.34385681152344,
+      "memory_mb": 109.28125,
+      "memory_delta_mb": 79.6875
+    },
+    "first_mapping": {
+      "time_ms": 41.320085525512695,
+      "memory_mb": 109.3125,
+      "memory_delta_mb": 0.03125
+    },
+    "cached_mapping_0": {
+      "time_ms": 41.7637825012207,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.015625
+    },
+    "cached_mapping_1": {
+      "time_ms": 42.777061462402344,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "cached_mapping_2": {
+      "time_ms": 40.87090492248535,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "cached_mapping_3": {
+      "time_ms": 41.32986068725586,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "cached_mapping_4": {
+      "time_ms": 41.37873649597168,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "cached_mapping_5": {
+      "time_ms": 40.38500785827637,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "cached_mapping_6": {
+      "time_ms": 41.00322723388672,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "cached_mapping_7": {
+      "time_ms": 42.183876037597656,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "cached_mapping_8": {
+      "time_ms": 44.41213607788086,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "cached_mapping_9": {
+      "time_ms": 48.13885688781738,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "scale_test_1": {
+      "time_ms": 1.2660026550292969,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "scale_test_5": {
+      "time_ms": 25.990724563598633,
+      "memory_mb": 109.328125,
+      "memory_delta_mb": 0.0
+    },
+    "scale_test_10": {
+      "time_ms": 42.03391075134277,
+      "memory_mb": 109.359375,
+      "memory_delta_mb": 0.03125
+    },
+    "scale_test_20": {
+      "time_ms": 110.60976982116699,
+      "memory_mb": 109.375,
+      "memory_delta_mb": 0.015625
+    }
+  },
+  "concept_performance": {
+    "concept_initialization": {
+      "time_ms": 0.03504753112792969,
+      "memory_mb": 38.375,
+      "memory_delta_mb": 0.0
+    },
+    "concept_extract_0": {
+      "time_ms": 1.8048286437988281,
+      "memory_mb": 38.40625,
+      "memory_delta_mb": 0.03125
+    },
+    "concept_extract_1": {
+      "time_ms": 0.11205673217773438,
+      "memory_mb": 38.40625,
+      "memory_delta_mb": 0.0
+    },
+    "concept_extract_2": {
+      "time_ms": 0.17380714416503906,
+      "memory_mb": 38.421875,
+      "memory_delta_mb": 0.015625
+    },
+    "concept_extract_3": {
+      "time_ms": 0.5190372467041016,
+      "memory_mb": 38.421875,
+      "memory_delta_mb": 0.0
+    }
+  },
+  "stress_test": {
+    "total_time": 0.009423017501831055,
+    "average_time_ms": 0.1884603500366211
+  },
+  "memory_usage_mb": 45.53125
+}

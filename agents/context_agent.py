@@ -1,12 +1,25 @@
 from typing import Dict, Any, List
 import re
+import json
+import os
+from dotenv import load_dotenv
 from agents.base_agent import BaseAgent
+
+# Load environment variables
+load_dotenv()
 
 class ContextAgent(BaseAgent):
     """Agent responsible for analyzing context and segmenting transcript into SOAP sections"""
     
     def __init__(self):
         super().__init__("ContextAgent")
+        
+        # Initialize LLM for enhanced context analysis
+        self.llm_provider = os.getenv("DEFAULT_LLM_PROVIDER", "openai")
+        self.model_name = os.getenv("DEFAULT_MODEL", "gpt-4")
+        self.use_llm = os.getenv("USE_LLM_FOR_CONTEXT", "true").lower() == "true"
+        self.initialize_llm()
+        
         self.soap_keywords = {
             "subjective": [
                 "how are you feeling", "symptoms", "pain", "complain", "history",
@@ -30,13 +43,45 @@ class ContextAgent(BaseAgent):
             ]
         }
     
+    def initialize_llm(self):
+        """Initialize the LLM for enhanced context analysis"""
+        self.client = None
+        if not self.use_llm:
+            self.logger.info("LLM disabled for context analysis, using rule-based only")
+            return
+            
+        try:
+            if self.llm_provider == "openai":
+                api_key = os.getenv("OPENAI_API_KEY")
+                if not api_key:
+                    self.logger.warning("OPENAI_API_KEY not found, using rule-based analysis")
+                    return
+                    
+                import openai
+                self.client = openai.OpenAI(api_key=api_key)
+                self.logger.info("OpenAI client initialized for context analysis")
+                
+            elif self.llm_provider == "anthropic":
+                api_key = os.getenv("ANTHROPIC_API_KEY")
+                if not api_key:
+                    self.logger.warning("ANTHROPIC_API_KEY not found, using rule-based analysis")
+                    return
+                    
+                import anthropic
+                self.client = anthropic.Anthropic(api_key=api_key)
+                self.logger.info("Anthropic client initialized for context analysis")
+                
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize LLM for context analysis: {e}")
+            self.client = None
+    
     def process(self, input_data) -> Dict[str, Any]:
         """Process input data - alias for analyze method"""
         return self.analyze(input_data)
     
     def analyze(self, transcript: str) -> Dict[str, Any]:
         """
-        Analyze the transcript and identify SOAP sections
+        Analyze the transcript and identify SOAP sections using hybrid LLM + rule-based approach
         
         Args:
             transcript: Cleaned transcript text
@@ -47,35 +92,59 @@ class ContextAgent(BaseAgent):
         try:
             self.log_activity("Starting context analysis")
             
-            # Segment the transcript
-            segments = self.segment_transcript(transcript)
-            
-            # Classify each segment
-            classified_segments = self.classify_segments(segments)
-            
-            # Extract clinical context
-            clinical_context = self.extract_clinical_context(transcript)
-            
-            # Identify conversation flow
-            conversation_flow = self.analyze_conversation_flow(segments)
-            
-            result = {
-                "segments": classified_segments,
-                "clinical_context": clinical_context,
-                "conversation_flow": conversation_flow,
-                "soap_mapping": self.map_to_soap_sections(classified_segments),
-                "confidence_score": self.calculate_classification_confidence(classified_segments)
-            }
+            # Use LLM if available and enabled, otherwise fall back to rule-based
+            if self.use_llm and self.client:
+                llm_result = self.analyze_with_llm(transcript)
+                rule_result = self.analyze_rule_based(transcript)
+                
+                # Merge LLM and rule-based results, prioritizing LLM insights
+                result = self.merge_analysis_results(llm_result, rule_result)
+            else:
+                # Use rule-based analysis only
+                result = self.analyze_rule_based(transcript)
             
             self.log_activity("Context analysis completed", {
-                "segments_count": len(segments),
-                "soap_sections_identified": len(result["soap_mapping"])
+                "segments_count": len(result.get("segments", [])),
+                "soap_sections_identified": len(result.get("soap_mapping", {}))
             })
             
             return result
             
         except Exception as e:
             return self.handle_error(e, "context analysis")
+    
+    def analyze_rule_based(self, transcript: str) -> Dict[str, Any]:
+        """
+        Perform rule-based context analysis (fallback method)
+        
+        Args:
+            transcript: Clinical transcript text
+            
+        Returns:
+            Dict containing analysis results
+        """
+        # Segment the transcript
+        segments = self.segment_transcript(transcript)
+        
+        # Classify each segment
+        classified_segments = self.classify_segments(segments)
+        
+        # Extract clinical context
+        clinical_context = self.extract_clinical_context(transcript)
+        
+        # Identify conversation flow
+        conversation_flow = self.analyze_conversation_flow(segments)
+        
+        result = {
+            "segments": classified_segments,
+            "clinical_context": clinical_context,
+            "conversation_flow": conversation_flow,
+            "soap_mapping": self.map_to_soap_sections(classified_segments),
+            "confidence_score": self.calculate_classification_confidence(classified_segments),
+            "source": "rule_based"
+        }
+        
+        return result
     
     def segment_transcript(self, transcript: str) -> List[Dict[str, Any]]:
         """Segment transcript into speaker turns and exchanges"""
@@ -287,3 +356,166 @@ class ContextAgent(BaseAgent):
             "soap_mapping": {"subjective": [], "objective": [], "assessment": [], "plan": []},
             "confidence_score": 0.0
         }
+    
+    def analyze_with_llm(self, transcript: str) -> Dict[str, Any]:
+        """
+        Analyze transcript using LLM for enhanced SOAP section classification
+        
+        Args:
+            transcript: Clinical transcript text
+            
+        Returns:
+            Dict containing LLM-enhanced analysis results
+        """
+        if not self.client:
+            self.logger.warning("LLM client not available, falling back to rule-based analysis")
+            return self.analyze_rule_based(transcript)
+        
+        try:
+            prompt = f"""
+You are a clinical documentation specialist. Analyze this medical conversation transcript and classify each segment into SOAP sections (Subjective, Objective, Assessment, Plan).
+
+For each speaker segment, determine:
+1. Primary SOAP category (subjective/objective/assessment/plan)
+2. Confidence score (0.0-1.0)
+3. Key clinical concepts mentioned
+4. Conversation flow indicators
+
+Transcript:
+"{transcript}"
+
+Return your analysis as JSON with this structure:
+{{
+  "segments": [
+    {{
+      "speaker": "Doctor/Patient",
+      "text": "segment text",
+      "soap_category": "subjective/objective/assessment/plan",
+      "confidence": 0.95,
+      "clinical_concepts": ["concept1", "concept2"],
+      "order": 0
+    }}
+  ],
+  "soap_mapping": {{
+    "subjective": ["segment indices"],
+    "objective": ["segment indices"], 
+    "assessment": ["segment indices"],
+    "plan": ["segment indices"]
+  }},
+  "clinical_context": {{
+    "visit_type": "follow-up/new-patient/emergency/routine",
+    "urgency_level": "low/medium/high",
+    "patient_concerns": ["concern1", "concern2"],
+    "clinical_indicators": ["indicator1", "indicator2"]
+  }},
+  "overall_confidence": 0.90
+}}
+
+Focus on accurate SOAP classification and clinical context extraction.
+"""
+
+            if self.llm_provider == "openai":
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=[
+                        {"role": "system", "content": "You are a clinical documentation specialist. Return only valid JSON."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.1,
+                    max_tokens=1500
+                )
+                
+                content = response.choices[0].message.content.strip()
+                
+            elif self.llm_provider == "anthropic":
+                response = self.client.messages.create(
+                    model=self.model_name,
+                    max_tokens=1500,
+                    temperature=0.1,
+                    messages=[
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                
+                content = response.content[0].text.strip()
+            
+            # Parse JSON response
+            import json
+            
+            # Clean up response to extract JSON
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+            
+            llm_result = json.loads(content)
+            
+            # Standardize the result format
+            standardized_result = {
+                "segments": llm_result.get("segments", []),
+                "clinical_context": llm_result.get("clinical_context", {}),
+                "conversation_flow": self.analyze_conversation_flow(llm_result.get("segments", [])),
+                "soap_mapping": llm_result.get("soap_mapping", {}),
+                "confidence_score": llm_result.get("overall_confidence", 0.5),
+                "source": "llm"
+            }
+            
+            self.logger.info(f"LLM analyzed {len(standardized_result['segments'])} segments")
+            return standardized_result
+            
+        except Exception as e:
+            self.logger.error(f"LLM context analysis failed: {e}")
+            return self.analyze_rule_based(transcript)
+    
+    def merge_analysis_results(self, llm_result: Dict[str, Any], rule_result: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Merge LLM and rule-based analysis results, prioritizing LLM insights
+        
+        Args:
+            llm_result: Results from LLM analysis
+            rule_result: Results from rule-based analysis
+            
+        Returns:
+            Merged analysis results
+        """
+        merged_result = llm_result.copy()
+        
+        # Enhance with rule-based insights where LLM might have gaps
+        if not merged_result.get("clinical_context", {}).get("clinical_indicators"):
+            rule_indicators = rule_result.get("clinical_context", {}).get("clinical_indicators", [])
+            if rule_indicators:
+                merged_result.setdefault("clinical_context", {})["clinical_indicators"] = rule_indicators
+        
+        # Boost confidence for segments that both methods agree on
+        llm_segments = merged_result.get("segments", [])
+        rule_segments = rule_result.get("segments", [])
+        
+        if len(llm_segments) == len(rule_segments):
+            for i, (llm_seg, rule_seg) in enumerate(zip(llm_segments, rule_segments)):
+                if llm_seg.get("soap_category") == rule_seg.get("soap_category"):
+                    # Both methods agree, boost confidence
+                    llm_segments[i]["confidence"] = min(1.0, llm_seg.get("confidence", 0.5) + 0.1)
+                    llm_segments[i]["agreement"] = "both_methods"
+                else:
+                    llm_segments[i]["agreement"] = "llm_only"
+        
+        # Combine conversation flow insights
+        rule_flow = rule_result.get("conversation_flow", {})
+        llm_flow = merged_result.get("conversation_flow", {})
+        
+        # Use rule-based flow metrics as backup
+        for key, value in rule_flow.items():
+            if key not in llm_flow:
+                llm_flow[key] = value
+        
+        merged_result["conversation_flow"] = llm_flow
+        merged_result["source"] = "hybrid"
+        
+        # Calculate hybrid confidence score
+        llm_conf = llm_result.get("confidence_score", 0.5)
+        rule_conf = rule_result.get("confidence_score", 0.5)
+        merged_result["confidence_score"] = (llm_conf * 0.7 + rule_conf * 0.3)
+        
+        self.logger.info(f"Merged LLM + rule-based analysis: {len(merged_result.get('segments', []))} segments")
+        return merged_result

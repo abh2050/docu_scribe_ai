@@ -1,0 +1,37 @@
+Doctor: Hello Ms. Wilson, what brings you in today?
+
+Patient: I've been having these terrible headaches, Dr. Martinez. They've been getting worse over the past month.
+
+Doctor: I'm sorry to hear that. Can you describe the headaches for me? Where is the pain located and what does it feel like?
+
+Patient: It's usually on one side of my head, mostly the right side. The pain is really intense, like throbbing. Sometimes it feels like my head is going to explode.
+
+Doctor: And how long do these episodes typically last?
+
+Patient: They can last anywhere from 4 to 72 hours. When they're really bad, I can't do anything but lie down in a dark room.
+
+Doctor: Are there any particular triggers you've noticed before the headaches start?
+
+Patient: Stress definitely makes them worse. Also, I've noticed they sometimes come after I've had wine or aged cheese. And they seem to happen more often when I haven't slept well.
+
+Doctor: Do you experience any other symptoms besides the head pain?
+
+Patient: Yes, I often feel nauseous, and bright lights and loud noises really bother me. Sometimes I even see these zigzag lines or flashing lights about 30 minutes before the pain starts.
+
+Doctor: That visual disturbance is called an aura, and it's typical of migraine headaches. Have you ever been diagnosed with migraines before?
+
+Patient: No, I've just been taking over-the-counter pain relievers, but they barely help.
+
+Doctor: Based on your symptoms - the one-sided throbbing pain, sensitivity to light and sound, nausea, and visual aura - this sounds like classic migraine with aura. I'd like to start you on a triptan medication that's specifically designed for migraines.
+
+Patient: Will that prevent them from happening?
+
+Doctor: The triptan will help stop a migraine once it starts, especially if you take it early in the attack. For prevention, we might consider a daily medication if they're frequent enough. I also recommend keeping a headache diary to identify triggers, and working on stress management and sleep hygiene.
+
+Patient: Is there anything else I should avoid?
+
+Doctor: Besides the triggers you've identified, some patients find that certain foods like processed meats with nitrates, MSG, and artificial sweeteners can trigger migraines. Regular meals are important too - skipping meals can trigger an attack.
+
+Patient: OK, I'll try to be more careful about those things.
+
+Doctor: Let's follow up in a month to see how the triptan is working. If you experience any unusual symptoms like the worst headache of your life, confusion, weakness, or visual changes that don't go away, please seek immediate medical attention as those could be signs of something more serious.

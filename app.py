@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 import plotly.express as px
 import plotly.graph_objects as go
+import os
 
 from agents.transcription_agent import TranscriptionAgent
 from agents.context_agent import ContextAgent
@@ -15,7 +16,6 @@ from agents.icd_mapper_agent import ICDMapperAgent
 from agents.feedback_agent import FeedbackAgent
 from agents.formatter_agent import FormatterAgent
 from utils.fhir_formatter import FHIRFormatter
-from evaluation.llmops_evaluator import LLMOpsEvaluator
 
 # Page configuration
 st.set_page_config(
@@ -70,6 +70,17 @@ class DocuScribeApp:
     def __init__(self):
         self.initialize_session_state()
         self.initialize_agents()
+        
+        # Initialize example transcript options
+        self.example_options = {
+            "Hypertension Follow-up": "data/example_transcripts/hypertension_followup.txt",
+            "Diabetes Management": "data/example_transcripts/diabetes_management.txt",
+            "Knee Osteoarthritis": "data/example_transcripts/knee_osteoarthritis.txt",
+            "Pneumonia Case": "data/example_transcripts/pneumonia_case.txt",
+            "Pediatric Ear Infection": "data/example_transcripts/pediatric_ear_infection.txt",
+            "Migraine Consultation": "data/example_transcripts/migraine_consultation.txt",
+            "Allergic Reaction": "data/example_transcripts/allergic_reaction.txt"
+        }
     
     def initialize_session_state(self):
         """Initialize session state variables"""
@@ -151,7 +162,6 @@ class DocuScribeApp:
         # Step 1: Transcription (already have text)
         agent_status["Transcription"] = "running"
         self.display_agent_status(agent_status)
-        time.sleep(1)  # Simulate processing
         
         transcription_result = self.transcription_agent.process(transcript_text)
         agent_status["Transcription"] = "complete"
@@ -160,7 +170,6 @@ class DocuScribeApp:
         # Step 2: Context Analysis
         agent_status["Context Analysis"] = "running"
         self.display_agent_status(agent_status)
-        time.sleep(1)
         
         context_result = self.context_agent.analyze(transcription_result["cleaned_text"])
         agent_status["Context Analysis"] = "complete"
@@ -169,7 +178,6 @@ class DocuScribeApp:
         # Step 3: Medical Scribing
         agent_status["Medical Scribing"] = "running"
         self.display_agent_status(agent_status)
-        time.sleep(2)
         
         soap_notes = self.scribe_agent.generate_soap_notes(
             transcription_result["cleaned_text"],
@@ -181,7 +189,6 @@ class DocuScribeApp:
         # Step 4: Concept Extraction
         agent_status["Concept Extraction"] = "running"
         self.display_agent_status(agent_status)
-        time.sleep(1)
         
         concepts = self.concept_agent.extract_concepts(transcription_result["cleaned_text"])
         agent_status["Concept Extraction"] = "complete"
@@ -190,7 +197,6 @@ class DocuScribeApp:
         # Step 5: ICD Mapping
         agent_status["ICD Mapping"] = "running"
         self.display_agent_status(agent_status)
-        time.sleep(1)
         
         icd_codes = self.icd_mapper_agent.map_to_icd10(concepts)
         agent_status["ICD Mapping"] = "complete"
@@ -326,22 +332,44 @@ class DocuScribeApp:
     
     def run(self):
         """Main application loop"""
+        # Initialize session state
+        if 'processing_complete' not in st.session_state:
+            st.session_state.processing_complete = False
+        if 'soap_notes' not in st.session_state:
+            st.session_state.soap_notes = {}
+        if 'extracted_concepts' not in st.session_state:
+            st.session_state.extracted_concepts = []
+        if 'icd_codes' not in st.session_state:
+            st.session_state.icd_codes = []
+        if 'processing_metrics' not in st.session_state:
+            st.session_state.processing_metrics = {}
+        if 'agent_status' not in st.session_state:
+            st.session_state.agent_status = {}
+        if 'full_results' not in st.session_state:
+            st.session_state.full_results = {}
+            
         self.display_header()
         
         # Sidebar
         with st.sidebar:
             st.header("⚙️ Configuration")
             
+            # Clear chat and memory button
+            if st.button("🗑️ Clear Chat & Memory", type="secondary", use_container_width=True):
+                self.clear_session_state()
+            
+            st.divider()
+            
             # Model selection
             llm_provider = st.selectbox(
                 "LLM Provider",
-                ["OpenAI", "Google", "Anthropic"],
+                ["OpenAI", "Google"],
                 index=0
             )
             
             model_name = st.selectbox(
                 "Model",
-                ["gpt-4", "gpt-3.5-turbo", "gemini-pro", "claude-3-sonnet"],
+                ["gpt-3.5-turbo", "gpt-4", "gemini-pro"],
                 index=0
             )
             
@@ -349,44 +377,71 @@ class DocuScribeApp:
             
             # Example transcripts
             st.header("📁 Example Transcripts")
-            if st.button("Load Hypertension Follow-up"):
-                st.session_state.example_transcript = """
-                Doctor: Good morning, Mrs. Johnson. How have you been feeling since our last visit?
+            
+            # Function to load transcript from file
+            def load_transcript_from_file(file_path):
+                try:
+                    with open(file_path, 'r') as f:
+                        return f.read()
+                except Exception as e:
+                    st.error(f"Failed to load transcript: {e}")
+                    return ""
+            
+            # Example transcript selector
+            example_options = self.example_options
+            
+            # Create columns for a more compact layout
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                if st.button("Load Hypertension Follow-up"):
+                    st.session_state.example_transcript = load_transcript_from_file(example_options["Hypertension Follow-up"])
                 
-                Patient: Good morning, Dr. Smith. I've been doing okay, but I've been having some headaches lately, especially in the mornings.
+                if st.button("Load Knee Osteoarthritis"):
+                    st.session_state.example_transcript = load_transcript_from_file(example_options["Knee Osteoarthritis"])
+
+                if st.button("Load Migraine Consultation"):
+                    st.session_state.example_transcript = load_transcript_from_file(example_options["Migraine Consultation"])
+            
+            with col2:
+                if st.button("Load Diabetes Management"):
+                    st.session_state.example_transcript = load_transcript_from_file(example_options["Diabetes Management"])
                 
-                Doctor: I see. When did these headaches start? And have you been taking your blood pressure medication regularly?
+                if st.button("Load Pneumonia Case"):
+                    st.session_state.example_transcript = load_transcript_from_file(example_options["Pneumonia Case"])
                 
-                Patient: The headaches started about two weeks ago. And yes, I've been taking my lisinopril every morning, 10mg as prescribed.
+                if st.button("Load Allergic Reaction"):
+                    st.session_state.example_transcript = load_transcript_from_file(example_options["Allergic Reaction"])
+            
+            with col3:
+                if st.button("Load Pediatric Ear Infection"):
+                    st.session_state.example_transcript = load_transcript_from_file(example_options["Pediatric Ear Infection"])
+            
+            # Add information about example transcripts
+            with st.expander("About Example Transcripts"):
+                st.markdown("""
+                These example transcripts demonstrate different medical scenarios:
                 
-                Doctor: Good. Let me check your blood pressure today. *takes blood pressure* Your blood pressure is 150 over 95, which is higher than we'd like to see. 
+                - **Hypertension Follow-up**: Patient with elevated blood pressure and headaches
+                - **Diabetes Management**: Patient struggling with glucose control
+                - **Knee Osteoarthritis**: Patient with progressive joint pain and inflammation
+                - **Pneumonia Case**: Patient with respiratory infection symptoms
+                - **Pediatric Ear Infection**: Young child with recurring ear infections
+                - **Migraine Consultation**: Patient with classic migraine symptoms and triggers
+                - **Allergic Reaction**: Patient experiencing allergic reaction to seafood
                 
-                Patient: Is that bad? I've been trying to watch my salt intake like you suggested.
-                
-                Doctor: It's elevated, but we can manage this. The headaches could be related to the higher blood pressure. I think we need to increase your lisinopril to 20mg daily. Also, let's add some labs to check your kidney function.
-                
-                Patient: Okay, whatever you think is best. Should I be worried?
-                
-                Doctor: No need to worry. With the medication adjustment and continued lifestyle modifications, we should see improvement. I'd like to see you back in 4 weeks to recheck your blood pressure.
-                """
+                You can also load custom samples from the `/data/example_transcripts/` folder or browse all examples in the [Example Transcripts](/example_transcripts) page.
+                """)
             
             st.divider()
             
-            # LLMOps Evaluation
-            st.header("📊 LLMOps Evaluation")
-            
-            # Initialize evaluator if not exists
-            if 'evaluator' not in st.session_state:
-                st.session_state.evaluator = LLMOpsEvaluator()
-            
-            if st.button("🔍 Run Sample Evaluation"):
-                with st.spinner("Running evaluation..."):
-                    self.run_sample_evaluation()
+            # LLM-based Evaluation
+            st.header("🤖 LLM Evaluation")
             
             if st.session_state.get('processing_complete') and st.session_state.get('full_results'):
-                if st.button("📈 Evaluate Current Results"):
-                    with st.spinner("Evaluating current results..."):
-                        self.evaluate_current_results()
+                if st.button("🤖 Get AI Feedback", help="Use AI to provide qualitative assessment"):
+                    with st.spinner("Running LLM-based evaluation..."):
+                        self.run_llm_evaluation_only()
         
         # Main content area
         st.header("📋 Clinical Transcript Input")
@@ -400,27 +455,34 @@ class DocuScribeApp:
         )
         
         # Process button
-        if st.button("🚀 Process Transcript", type="primary", use_container_width=True):
-            if transcript_input.strip():
-                with st.spinner("Processing transcript through agent pipeline..."):
-                    try:
-                        results, agent_status = self.process_transcript(transcript_input)
-                        
-                        # Store results in session state
-                        st.session_state.processing_complete = True
-                        st.session_state.soap_notes = results["soap_notes"]
-                        st.session_state.extracted_concepts = results["concepts"]
-                        st.session_state.icd_codes = results["icd_codes"]
-                        st.session_state.processing_metrics = results["metrics"]
-                        st.session_state.agent_status = agent_status
-                        st.session_state.full_results = results
-                        
-                        st.success("✅ Processing complete!")
-                        
-                    except Exception as e:
-                        st.error(f"❌ Error processing transcript: {str(e)}")
-            else:
-                st.warning("⚠️ Please enter a transcript before processing.")
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            if st.button("🚀 Process Transcript", type="primary", use_container_width=True):
+                if transcript_input.strip():
+                    with st.spinner("Processing transcript through agent pipeline..."):
+                        try:
+                            results, agent_status = self.process_transcript(transcript_input)
+                            
+                            # Store results in session state
+                            st.session_state.processing_complete = True
+                            st.session_state.soap_notes = results["soap_notes"]
+                            st.session_state.extracted_concepts = results["concepts"]
+                            st.session_state.icd_codes = results["icd_codes"]
+                            st.session_state.processing_metrics = results["metrics"]
+                            st.session_state.agent_status = agent_status
+                            st.session_state.full_results = results
+                            
+                            st.success("✅ Processing complete!")
+                            
+                        except Exception as e:
+                            st.error(f"❌ Error processing transcript: {str(e)}")
+                else:
+                    st.warning("⚠️ Please enter a transcript before processing.")
+        
+        with col2:
+            if st.button("🗑️ Clear All", type="secondary", use_container_width=True, help="Clear all data and start fresh"):
+                self.clear_session_state()
         
         # Display results if processing is complete
         if st.session_state.processing_complete:
@@ -460,7 +522,7 @@ class DocuScribeApp:
             # Evaluation Results
             if 'evaluation_results' in st.session_state:
                 st.divider()
-                self.display_evaluation_results()
+                self.display_llm_evaluation_results()
             
             # Final completion
             if st.session_state.agent_status.get("Human Review") == "running":
@@ -470,159 +532,175 @@ class DocuScribeApp:
                     st.balloons()
                     st.success("🎉 Clinical documentation completed and ready for EHR integration!")
     
-    def run_sample_evaluation(self):
-        """Run evaluation with sample data"""
+    def run_llm_evaluation_only(self):
+        """Run LLM-based evaluation on current results without traditional metrics"""
         try:
-            # Sample reference data
-            reference_soap = {
-                "subjective": "Patient reports persistent headache for 3 days, described as constant ache behind eyes. Associated with photophobia. Ibuprofen provides minimal relief.",
-                "objective": "Blood pressure 150/95 mmHg (elevated). Patient appears uncomfortable.",
-                "assessment": "Headache with hypertension. Possible tension headache vs. hypertensive headache.",
-                "plan": "1. Blood pressure monitoring 2. Consider antihypertensive medication 3. Follow-up in 1 week 4. Return if symptoms worsen"
-            }
+            # Get current transcript and determine type
+            current_transcript = st.session_state.get('example_transcript', '')
+            transcript_type = "General Medical Encounter"
             
-            reference_concepts = [
-                {"concept": "headache", "category": "symptom"},
-                {"concept": "photophobia", "category": "symptom"},
-                {"concept": "hypertension", "category": "condition"},
-                {"concept": "ibuprofen", "category": "medication"}
-            ]
-            
-            reference_icd_codes = [
-                {"code": "R51.9", "description": "Headache, unspecified"},
-                {"code": "I10", "description": "Essential hypertension"}
-            ]
-            
-            # Generate sample predictions (using simple mock data for demo)
-            generated_soap = {
-                "subjective": "Patient complains of headache for several days. Photophobia present. Takes ibuprofen without relief.",
-                "objective": "Elevated BP 150/95. Patient uncomfortable.",
-                "assessment": "Headache likely related to hypertension.",
-                "plan": "Increase antihypertensive medication. Follow-up needed."
-            }
-            
-            generated_concepts = [
-                {"concept": "headache", "category": "symptom"},
-                {"concept": "photophobia", "category": "symptom"},
-                {"concept": "hypertension", "category": "condition"}
-            ]
-            
-            generated_icd_codes = [
-                {"code": "R51.9", "description": "Headache, unspecified"},
-                {"code": "I10", "description": "Essential hypertension"}
-            ]
-            
-            # Run evaluations
-            soap_scores = st.session_state.evaluator.evaluate_soap_notes(generated_soap, reference_soap)
-            concept_scores = st.session_state.evaluator.evaluate_concept_extraction(generated_concepts, reference_concepts)
-            icd_scores = st.session_state.evaluator.evaluate_icd_mapping(generated_icd_codes, reference_icd_codes)
-            
-            # Store results
-            st.session_state.evaluation_results = {
-                'soap_scores': soap_scores,
-                'concept_scores': concept_scores,
-                'icd_scores': icd_scores,
-                'timestamp': datetime.now().isoformat()
-            }
-            
-            # Display results
-            st.success("✅ Sample evaluation completed!")
-            self.display_evaluation_results()
-            
-        except Exception as e:
-            st.error(f"❌ Error running evaluation: {str(e)}")
-    
-    def evaluate_current_results(self):
-        """Evaluate the current processing results"""
-        try:
-            # Use simple reference data for demonstration
-            reference_soap = {
-                "subjective": "Patient reports symptoms and concerns discussed during visit.",
-                "objective": "Clinical findings and measurements documented.",
-                "assessment": "Clinical assessment and differential diagnosis provided.",
-                "plan": "Treatment plan and follow-up recommendations outlined."
-            }
-            
-            reference_concepts = [
-                {"concept": "example", "category": "symptom"}
-            ]
-            
-            reference_icd_codes = [
-                {"code": "Z00.00", "description": "Encounter for general examination"}
-            ]
+            # Try to determine which example transcript is being used
+            for transcript_name, file_path in self.example_options.items():
+                try:
+                    with open(file_path, 'r') as f:
+                        file_content = f.read()
+                        if current_transcript and file_content.strip() == current_transcript.strip():
+                            transcript_type = transcript_name
+                            break
+                except Exception:
+                    pass
             
             # Get current results
             current_soap = st.session_state.full_results.get('soap_notes', {})
             current_concepts = st.session_state.full_results.get('concepts', [])
             current_icd_codes = st.session_state.full_results.get('icd_codes', [])
             
-            # Run evaluations
-            soap_scores = st.session_state.evaluator.evaluate_soap_notes(current_soap, reference_soap)
-            concept_scores = st.session_state.evaluator.evaluate_concept_extraction(current_concepts, reference_concepts)
-            icd_scores = st.session_state.evaluator.evaluate_icd_mapping(current_icd_codes, reference_icd_codes)
+            # Run LLM evaluation
+            llm_result = self.evaluate_with_llm_simple(
+                current_soap, current_concepts, current_icd_codes, transcript_type, current_transcript
+            )
             
-            # Store results
+            # Store evaluation results
             st.session_state.evaluation_results = {
-                'soap_scores': soap_scores,
-                'concept_scores': concept_scores,
-                'icd_scores': icd_scores,
+                'llm_evaluation': llm_result,
                 'timestamp': datetime.now().isoformat()
             }
             
-            st.success("✅ Current results evaluated!")
-            self.display_evaluation_results()
+            st.success("✅ AI evaluation completed!")
+            self.display_llm_evaluation_results()
             
         except Exception as e:
-            st.error(f"❌ Error evaluating current results: {str(e)}")
+            st.error(f"❌ Error running AI evaluation: {str(e)}")
     
-    def display_evaluation_results(self):
-        """Display evaluation results"""
+    def evaluate_with_llm_simple(self, generated_soap: Dict[str, str], generated_concepts: List[Dict], 
+                          generated_icd_codes: List[Dict], transcript_type: str, transcript: str) -> Dict[str, Any]:
+        """Use LLM to evaluate the quality of generated medical documentation without reference data"""
+        try:
+            # Format input for LLM
+            concepts_text = ", ".join([f"{c.get('concept', '')} ({c.get('category', '')})" for c in generated_concepts])
+            icd_codes_text = ", ".join([f"{c.get('code', '')} - {c.get('description', '')}" for c in generated_icd_codes])
+            
+            prompt = f"""
+You are an expert medical evaluator judging the quality of AI-generated medical documentation for a {transcript_type} encounter.
+
+ORIGINAL TRANSCRIPT:
+{transcript[:500]}...
+
+AI-GENERATED SOAP NOTES:
+Subjective: {generated_soap.get('subjective', 'N/A')}
+Objective: {generated_soap.get('objective', 'N/A')}
+Assessment: {generated_soap.get('assessment', 'N/A')}
+Plan: {generated_soap.get('plan', 'N/A')}
+
+AI-EXTRACTED MEDICAL CONCEPTS:
+{concepts_text}
+
+AI-SUGGESTED ICD CODES:
+{icd_codes_text}
+
+Please evaluate the AI-generated medical documentation focusing on:
+1. **Clinical Accuracy**: Are the medical facts correctly captured from the transcript?
+2. **Completeness**: Did the AI capture all important information from the encounter?
+3. **Relevance**: Is all included information medically relevant?
+4. **Clarity**: Are the notes clear, concise, and well-organized?
+5. **Professional Standards**: Do the notes meet clinical documentation standards?
+
+Provide a structured evaluation with:
+- Overall Quality Score (1-10)
+- Key Strengths (2-3 points)
+- Areas for Improvement (2-3 points)
+- Specific recommendations for better documentation
+
+Format your response as a professional clinical evaluation report.
+"""
+            
+            # Try to use OpenAI for evaluation
+            if not hasattr(self, 'openai_client'):
+                import openai
+                api_key = os.getenv("OPENAI_API_KEY")
+                if api_key:
+                    self.openai_client = openai.OpenAI(api_key=api_key)
+                else:
+                    return {"error": "OpenAI API key not found. Please set OPENAI_API_KEY environment variable."}
+            
+            # Call the OpenAI API
+            response = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an expert medical evaluator specializing in clinical documentation quality assessment."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.1,
+                max_tokens=1000
+            )
+            
+            # Extract the LLM's evaluation
+            llm_evaluation = response.choices[0].message.content
+            
+            # Return the evaluation
+            return {
+                "llm_evaluation": llm_evaluation,
+                "model_used": "gpt-3.5-turbo"
+            }
+            
+        except Exception as e:
+            return {"error": f"Error using LLM for evaluation: {str(e)}"}
+    
+    def display_llm_evaluation_results(self):
+        """Display LLM evaluation results"""
         if 'evaluation_results' not in st.session_state:
             return
         
         results = st.session_state.evaluation_results
         
-        st.subheader("📊 Evaluation Results")
+        st.subheader("🤖 AI Medical Documentation Evaluation")
         
-        # Create metrics columns
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.metric(
-                "SOAP BLEU Score",
-                f"{results['soap_scores'].get('bleu_score', 0):.3f}",
-                help="BLEU score measures similarity to reference text"
-            )
-            st.metric(
-                "SOAP ROUGE Score", 
-                f"{results['soap_scores'].get('rouge_score', 0):.3f}",
-                help="ROUGE score measures overlap with reference text"
-            )
-        
-        with col2:
-            st.metric(
-                "Concept Precision",
-                f"{results['concept_scores'].get('precision', 0):.3f}",
-                help="Precision of extracted medical concepts"
-            )
-            st.metric(
-                "Concept F1 Score",
-                f"{results['concept_scores'].get('f1_score', 0):.3f}",
-                help="F1 score for concept extraction"
-            )
-        
-        with col3:
-            st.metric(
-                "ICD Accuracy",
-                f"{results['icd_scores'].get('accuracy', 0):.3f}",
-                help="Accuracy of ICD code mapping"
-            )
-            st.metric(
-                "ICD F1 Score",
-                f"{results['icd_scores'].get('f1_score', 0):.3f}",
-                help="F1 score for ICD code mapping"
-            )
+        # Display LLM evaluation results
+        if results.get('llm_evaluation'):
+            if 'error' in results['llm_evaluation']:
+                st.error(f"❌ {results['llm_evaluation']['error']}")
+            else:
+                st.markdown(results['llm_evaluation']['llm_evaluation'])
+                st.caption(f"Evaluated using: {results['llm_evaluation']['model_used']}")
         
         # Detailed results in expander
-        with st.expander("📋 Detailed Evaluation Results"):
+        with st.expander("📋 Raw Evaluation Data"):
             st.json(results)
+
+    def clear_session_state(self):
+        """Clear all session state to reset the app for a new transcription"""
+        # List of all session state keys to clear
+        keys_to_clear = [
+            'processing_complete',
+            'soap_notes',
+            'extracted_concepts',
+            'icd_codes',
+            'processing_metrics',
+            'agent_status',
+            'full_results',
+            'evaluation_results',
+            'example_transcript',
+            'llm_provider',
+            'model_name'
+        ]
+        
+        # Clear each key
+        for key in keys_to_clear:
+            if key in st.session_state:
+                del st.session_state[key]
+        
+        # Re-initialize basic session state
+        self.initialize_session_state()
+        
+        st.success("✅ Chat and memory cleared! Ready for new transcription.")
+        st.rerun()  # Refresh the app to show cleared state
+
+
+def main():
+    """Main function to run the DocuScribe AI application"""
+    app = DocuScribeApp()
+    app.run()
+
+
+if __name__ == "__main__":
+    main()

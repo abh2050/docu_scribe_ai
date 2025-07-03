@@ -1,0 +1,223 @@
+"""
+Sample transcripts for DocuScribe AI testing and evaluation
+"""
+
+import json
+from pathlib import Path
+
+def get_sample_transcripts():
+    """Returns a list of sample medical transcripts for testing"""
+    
+    samples = [
+        {
+            "id": "sample_1",
+            "title": "Headache with Hypertension",
+            "transcript": """
+            Doctor: Good morning, Mrs. Johnson. How are you feeling today?
+            Patient: Hi doctor. I've been having this persistent headache for the past three days.
+            Doctor: Can you describe the headache? Is it throbbing or constant?
+            Patient: It's more of a constant ache, especially behind my eyes.
+            Doctor: Any nausea or sensitivity to light?
+            Patient: Yes, bright lights make it worse.
+            Doctor: Have you taken any medication?
+            Patient: Just some ibuprofen, but it doesn't help much.
+            Doctor: Let me check your blood pressure. It's 150 over 95, which is elevated.
+            """,
+            "reference_soap": {
+                "subjective": "Patient reports persistent headache for 3 days, described as constant ache behind eyes. Associated with photophobia. Ibuprofen provides minimal relief.",
+                "objective": "Blood pressure 150/95 mmHg (elevated). Patient appears uncomfortable.",
+                "assessment": "Headache with hypertension. Possible tension headache vs. hypertensive headache.",
+                "plan": "1. Blood pressure monitoring 2. Consider antihypertensive medication 3. Follow-up in 1 week 4. Return if symptoms worsen"
+            },
+            "reference_concepts": [
+                {"concept": "headache", "category": "symptom"},
+                {"concept": "photophobia", "category": "symptom"},
+                {"concept": "hypertension", "category": "condition"},
+                {"concept": "ibuprofen", "category": "medication"}
+            ],
+            "reference_icd_codes": [
+                {"code": "R519", "description": "Headache, unspecified"},
+                {"code": "I10", "description": "Essential hypertension"}
+            ]
+        },
+        {
+            "id": "sample_2",
+            "title": "Type 2 Diabetes Follow-up",
+            "transcript": """
+            Doctor: Hello Mr. Smith, how have you been managing your diabetes?
+            Patient: I've been checking my blood sugar regularly, and it's been mostly under control. 
+            Doctor: That's good to hear. What are your typical readings?
+            Patient: Usually between 130 and 150 in the morning, and around 120 before dinner.
+            Doctor: Are you taking your metformin as prescribed?
+            Patient: Yes, 1000mg twice daily with meals. But I sometimes forget the evening dose.
+            Doctor: And how about your diet and exercise?
+            Patient: I've been walking 30 minutes most days, but I still struggle with my diet, especially avoiding sweets.
+            Doctor: Let's check your blood pressure and weight. BP is 135/85, and you've lost 2 pounds since your last visit.
+            Patient: That's good news about the weight. I've also noticed some tingling in my feet recently.
+            Doctor: How long have you been experiencing that?
+            Patient: For about two weeks, mainly in the evenings.
+            """,
+            "reference_soap": {
+                "subjective": "Patient reports generally controlled blood glucose levels (130-150 mg/dL morning, 120 mg/dL pre-dinner). Taking metformin 1000mg BID but occasionally misses evening dose. Walking 30 minutes most days. Dietary compliance issues, especially with sweets. Reports new onset of foot tingling for past 2 weeks, primarily in evenings.",
+                "objective": "BP 135/85 mmHg. Weight decreased by 2 pounds since last visit.",
+                "assessment": "1. Type 2 diabetes mellitus, adequately controlled. 2. Early diabetic neuropathy suggested by foot paresthesias. 3. Hypertension, controlled.",
+                "plan": "1. Continue metformin 1000mg BID. 2. Refer to diabetic education for dietary reinforcement. 3. Neurological examination and foot care education. 4. Follow-up in 3 months. 5. HbA1c today."
+            },
+            "reference_concepts": [
+                {"concept": "diabetes", "category": "condition"},
+                {"concept": "hyperglycemia", "category": "condition"},
+                {"concept": "metformin", "category": "medication"},
+                {"concept": "paresthesia", "category": "symptom"},
+                {"concept": "foot tingling", "category": "symptom"},
+                {"concept": "hypertension", "category": "condition"}
+            ],
+            "reference_icd_codes": [
+                {"code": "E11.9", "description": "Type 2 diabetes mellitus without complications"},
+                {"code": "E11.42", "description": "Type 2 diabetes mellitus with diabetic polyneuropathy"},
+                {"code": "I10", "description": "Essential hypertension"}
+            ]
+        },
+        {
+            "id": "sample_3",
+            "title": "Respiratory Infection",
+            "transcript": """
+            Doctor: Good afternoon, Ms. Rodriguez. What brings you in today?
+            Patient: I've had this terrible cough for about a week now, and I'm feeling really tired.
+            Doctor: Is the cough productive? Are you bringing up any phlegm?
+            Patient: Yes, and it's thick and greenish.
+            Doctor: Any fever?
+            Patient: Yes, I've had a low-grade fever, around 100.4, for the past three days.
+            Doctor: Any shortness of breath or chest pain?
+            Patient: I feel a bit short of breath when I walk up stairs, and there's some pain here when I cough hard.
+            Doctor: Let me listen to your lungs. Take some deep breaths, please. I can hear some crackles in your lower right lung.
+            Patient: That doesn't sound good. I've also had some chills at night.
+            Doctor: Your oxygen level is 96% and your temperature right now is 100.2. Are you taking any medications for this?
+            Patient: Just some over-the-counter cough syrup and Tylenol for the fever.
+            """,
+            "reference_soap": {
+                "subjective": "Patient presents with 1-week history of productive cough with thick, green sputum. Reports low-grade fever (100.4°F) for 3 days, fatigue, mild dyspnea on exertion, and pleuritic chest pain with forceful coughing. Also experiencing night chills. Self-medicating with OTC cough syrup and acetaminophen.",
+                "objective": "Temperature 100.2°F. Oxygen saturation 96% on room air. Crackles auscultated in right lower lobe.",
+                "assessment": "Community-acquired pneumonia, right lower lobe, likely bacterial given productive cough with purulent sputum, fever, and auscultatory findings.",
+                "plan": "1. Chest X-ray to confirm diagnosis. 2. Prescribe amoxicillin-clavulanate 875-125mg BID for 7 days. 3. Symptomatic treatment with acetaminophen and guaifenesin. 4. Rest and adequate hydration. 5. Return if symptoms worsen or no improvement in 48-72 hours."
+            },
+            "reference_concepts": [
+                {"concept": "cough", "category": "symptom"},
+                {"concept": "productive cough", "category": "symptom"},
+                {"concept": "green sputum", "category": "symptom"},
+                {"concept": "fever", "category": "symptom"},
+                {"concept": "dyspnea", "category": "symptom"},
+                {"concept": "pleuritic chest pain", "category": "symptom"},
+                {"concept": "chills", "category": "symptom"},
+                {"concept": "pneumonia", "category": "condition"},
+                {"concept": "acetaminophen", "category": "medication"},
+                {"concept": "cough syrup", "category": "medication"}
+            ],
+            "reference_icd_codes": [
+                {"code": "J18.9", "description": "Pneumonia, unspecified organism"},
+                {"code": "R05", "description": "Cough"},
+                {"code": "R50.9", "description": "Fever, unspecified"}
+            ]
+        },
+        {
+            "id": "sample_4",
+            "title": "Joint Pain and Arthritis",
+            "transcript": """
+            Doctor: Hello Mrs. Wilson, what can I help you with today?
+            Patient: My knees have been really bothering me, doctor. The pain seems to be getting worse over the past few months.
+            Doctor: Can you describe the pain and when it typically occurs?
+            Patient: It's a dull aching pain most of the time, but it gets sharp when I go up or down stairs. It's also stiff in the morning for about 30 minutes after I wake up.
+            Doctor: Does anything make it better or worse?
+            Patient: It's definitely worse in damp, cold weather. Heat seems to help, and those over-the-counter anti-inflammatory pills - ibuprofen - give me some relief.
+            Doctor: Have you noticed any swelling or redness around the knee joints?
+            Patient: Yes, especially after I've been on my feet all day. My right knee swells more than my left.
+            Doctor: Let me examine your knees. There is some crepitus - that's the grinding sensation - when I move your right knee, and I can feel some fluid. Both knees show signs of inflammation.
+            Patient: My mother had arthritis. Is that what this could be?
+            Doctor: Based on your symptoms and examination, this appears consistent with osteoarthritis. Let's get some X-rays to confirm.
+            """,
+            "reference_soap": {
+                "subjective": "Patient reports progressive bilateral knee pain over several months. Describes dull aching pain that becomes sharp with stair climbing. Morning stiffness lasting approximately 30 minutes. Pain exacerbated by cold, damp weather and improved with heat application and ibuprofen. Reports swelling after prolonged standing, right knee more affected than left. Family history of arthritis (mother).",
+                "objective": "Bilateral knee exam reveals crepitus on movement, more pronounced in right knee. Right knee with palpable effusion. Signs of inflammation present bilaterally.",
+                "assessment": "Bilateral knee osteoarthritis, right greater than left, with moderate functional impairment.",
+                "plan": "1. Knee X-rays to evaluate disease severity. 2. Continue ibuprofen 400mg TID with food as needed for pain. 3. Physical therapy referral for strengthening exercises. 4. Consider topical NSAID gel. 5. Discuss joint protection techniques. 6. Follow-up in 4 weeks with X-ray results."
+            },
+            "reference_concepts": [
+                {"concept": "knee pain", "category": "symptom"},
+                {"concept": "osteoarthritis", "category": "condition"},
+                {"concept": "joint stiffness", "category": "symptom"},
+                {"concept": "joint swelling", "category": "symptom"},
+                {"concept": "crepitus", "category": "symptom"},
+                {"concept": "joint effusion", "category": "condition"},
+                {"concept": "ibuprofen", "category": "medication"}
+            ],
+            "reference_icd_codes": [
+                {"code": "M17.9", "description": "Osteoarthritis of knee, unspecified"},
+                {"code": "M25.561", "description": "Pain in right knee"},
+                {"code": "M25.562", "description": "Pain in left knee"}
+            ]
+        },
+        {
+            "id": "sample_5",
+            "title": "Pediatric Ear Infection",
+            "transcript": """
+            Doctor: Hello Mrs. Brown. What seems to be the problem with little Emma today?
+            Parent: She's been pulling at her right ear and crying a lot, especially at night. She also had a fever of 101 last night.
+            Doctor: How long has this been going on?
+            Parent: The ear tugging started about two days ago, but the fever just started yesterday.
+            Doctor: Has she had any cold symptoms, like runny nose or cough?
+            Parent: Yes, she's had a runny nose for about a week, and she hasn't been eating well.
+            Doctor: Has she had any ear infections before?
+            Parent: Yes, this would be her third one this year. The last one was about two months ago.
+            Doctor: Let me take a look at her ears. The right eardrum is definitely red and bulging. The left one looks normal. Her throat is a bit red as well, and I can see some nasal discharge.
+            Parent: Is it another ear infection? Do we need antibiotics again?
+            Doctor: Yes, she has acute otitis media in her right ear. Given this is her third infection in a short period, we should use antibiotics. But I'm also concerned about the frequent recurrence.
+            Parent: Should we see a specialist?
+            Doctor: Let's treat this episode first, but if she has another infection within the next couple of months, we should consider a referral to an ENT to discuss the possibility of ear tubes.
+            """,
+            "reference_soap": {
+                "subjective": "Mother reports 2-day history of child pulling at right ear and crying, especially at night. Fever of 101°F since yesterday. Concurrent rhinorrhea for 1 week and decreased appetite. History of recurrent otitis media; this is the third episode this year, with prior infection 2 months ago.",
+                "objective": "Right tympanic membrane erythematous and bulging. Left tympanic membrane normal. Pharyngeal erythema noted. Nasal discharge present.",
+                "assessment": "1. Acute otitis media, right ear. 2. Recurrent otitis media (3rd episode this year). 3. Upper respiratory infection.",
+                "plan": "1. Amoxicillin 40mg/kg/day divided BID for 10 days. 2. Acetaminophen for pain and fever. 3. Follow-up in 2 weeks. 4. Consider ENT referral for ear tubes if another infection occurs. 5. Discuss preventive measures with parents."
+            },
+            "reference_concepts": [
+                {"concept": "ear pain", "category": "symptom"},
+                {"concept": "ear tugging", "category": "symptom"},
+                {"concept": "fever", "category": "symptom"},
+                {"concept": "decreased appetite", "category": "symptom"},
+                {"concept": "rhinorrhea", "category": "symptom"},
+                {"concept": "otitis media", "category": "condition"},
+                {"concept": "tympanic membrane erythema", "category": "condition"},
+                {"concept": "bulging tympanic membrane", "category": "condition"},
+                {"concept": "pharyngeal erythema", "category": "condition"},
+                {"concept": "amoxicillin", "category": "medication"},
+                {"concept": "acetaminophen", "category": "medication"}
+            ],
+            "reference_icd_codes": [
+                {"code": "H66.91", "description": "Otitis media, unspecified, right ear"},
+                {"code": "J00", "description": "Acute nasopharyngitis [common cold]"},
+                {"code": "R50.9", "description": "Fever, unspecified"}
+            ]
+        }
+    ]
+    
+    return samples
+
+def save_sample_transcripts_to_file(file_path):
+    """Save the sample transcripts to a JSON file"""
+    samples = get_sample_transcripts()
+    
+    # Convert to the format expected by the evaluation script
+    formatted_samples = {
+        "transcripts": samples
+    }
+    
+    with open(file_path, 'w') as f:
+        json.dump(formatted_samples, f, indent=2)
+    
+    return file_path
+
+if __name__ == "__main__":
+    # Save samples when run directly
+    output_path = Path(__file__).parent.parent / "data" / "sample_transcripts.json"
+    save_sample_transcripts_to_file(output_path)
+    print(f"Sample transcripts saved to: {output_path}")

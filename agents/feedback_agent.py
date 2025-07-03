@@ -1,14 +1,59 @@
 from typing import Dict, Any, List
 from datetime import datetime
+import os
+import json
+from dotenv import load_dotenv
 from agents.base_agent import BaseAgent
+
+# Load environment variables
+load_dotenv()
 
 class FeedbackAgent(BaseAgent):
     """Agent responsible for handling human feedback and corrections"""
     
     def __init__(self):
         super().__init__("FeedbackAgent")
+        
+        # Initialize LLM for intelligent feedback analysis
+        self.llm_provider = os.getenv("DEFAULT_LLM_PROVIDER", "openai")
+        self.model_name = os.getenv("DEFAULT_MODEL", "gpt-4")
+        self.use_llm = os.getenv("USE_LLM_FOR_FEEDBACK", "true").lower() == "true"
+        self.initialize_llm()
+        
         self.feedback_history = []
         self.correction_patterns = {}
+    
+    def initialize_llm(self):
+        """Initialize the LLM for enhanced feedback analysis"""
+        self.client = None
+        if not self.use_llm:
+            self.logger.info("LLM disabled for feedback analysis, using rule-based only")
+            return
+            
+        try:
+            if self.llm_provider == "openai":
+                api_key = os.getenv("OPENAI_API_KEY")
+                if not api_key:
+                    self.logger.warning("OPENAI_API_KEY not found, using rule-based analysis")
+                    return
+                    
+                import openai
+                self.client = openai.OpenAI(api_key=api_key)
+                self.logger.info("OpenAI client initialized for feedback analysis")
+                
+            elif self.llm_provider == "anthropic":
+                api_key = os.getenv("ANTHROPIC_API_KEY")
+                if not api_key:
+                    self.logger.warning("ANTHROPIC_API_KEY not found, using rule-based analysis")
+                    return
+                    
+                import anthropic
+                self.client = anthropic.Anthropic(api_key=api_key)
+                self.logger.info("Anthropic client initialized for feedback analysis")
+                
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize LLM for feedback analysis: {e}")
+            self.client = None
     
     def process(self, input_data) -> Dict[str, Any]:
         """Process input data - alias for process_feedback method"""
@@ -16,7 +61,7 @@ class FeedbackAgent(BaseAgent):
     
     def process_feedback(self, feedback_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Process human feedback and corrections
+        Process human feedback and corrections using hybrid LLM + rule-based approach
         
         Args:
             feedback_data: Dictionary containing feedback information
@@ -30,11 +75,20 @@ class FeedbackAgent(BaseAgent):
             # Validate feedback structure
             validated_feedback = self.validate_feedback(feedback_data)
             
-            # Analyze feedback patterns
-            feedback_analysis = self.analyze_feedback_patterns(validated_feedback)
-            
-            # Generate improvement suggestions
-            improvements = self.generate_improvement_suggestions(validated_feedback)
+            # Use LLM if available and enabled, otherwise fall back to rule-based
+            if self.use_llm and self.client:
+                llm_analysis = self.analyze_feedback_with_llm(validated_feedback)
+                rule_analysis = self.analyze_feedback_patterns(validated_feedback)
+                
+                # Merge LLM and rule-based analysis, prioritizing LLM insights
+                feedback_analysis = self.merge_feedback_analysis(llm_analysis, rule_analysis)
+                
+                # Generate LLM-enhanced improvement suggestions
+                improvements = self.generate_improvement_suggestions_with_llm(validated_feedback)
+            else:
+                # Use rule-based analysis only
+                feedback_analysis = self.analyze_feedback_patterns(validated_feedback)
+                improvements = self.generate_improvement_suggestions(validated_feedback)
             
             # Store feedback for learning
             self.store_feedback(validated_feedback)
@@ -273,6 +327,196 @@ class FeedbackAgent(BaseAgent):
             })
         
         return suggestions
+    
+    def analyze_feedback_with_llm(self, feedback: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Analyze feedback using LLM for intelligent insights
+        """
+        if not self.client:
+            self.logger.warning("LLM client not available, falling back to rule-based analysis")
+            return self.analyze_feedback_patterns(feedback)
+        
+        try:
+            feedback_summary = self.prepare_feedback_summary(feedback)
+            
+            prompt = f"""
+You are a healthcare AI system analyst. Analyze this feedback and provide insights:
+
+Feedback: {feedback_summary}
+
+Return JSON with:
+{{
+    "root_causes": ["list of issues"],
+    "priority_areas": ["improvement areas"],
+    "satisfaction_assessment": {{
+        "level": "excellent/good/fair/poor",
+        "key_concerns": ["concerns"],
+        "positive_aspects": ["positives"]
+    }},
+    "reliability_score": 0.8
+}}
+"""
+
+            if self.llm_provider == "openai":
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=[
+                        {"role": "system", "content": "You are a healthcare AI analyst. Return valid JSON."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.1,
+                    max_tokens=600
+                )
+                content = response.choices[0].message.content.strip()
+                
+            elif self.llm_provider == "anthropic":
+                response = self.client.messages.create(
+                    model=self.model_name,
+                    max_tokens=600,
+                    temperature=0.1,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                content = response.content[0].text.strip()
+            
+            # Parse JSON response
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+            
+            analysis = json.loads(content)
+            analysis["source"] = "llm"
+            
+            self.logger.info("LLM feedback analysis completed")
+            return analysis
+            
+        except Exception as e:
+            self.logger.error(f"LLM feedback analysis failed: {e}")
+            return self.analyze_feedback_patterns(feedback)
+    
+    def prepare_feedback_summary(self, feedback: Dict[str, Any]) -> str:
+        """Prepare feedback summary for LLM analysis"""
+        summary_parts = []
+        
+        soap_corrections = feedback.get("soap_corrections", {})
+        if soap_corrections:
+            soap_issues = [f"{section}: {correction.get('correction_type', 'modification')}" 
+                          for section, correction in soap_corrections.items()]
+            summary_parts.append(f"SOAP corrections: {', '.join(soap_issues)}")
+        
+        concept_corrections = feedback.get("concept_corrections", [])
+        if concept_corrections:
+            summary_parts.append(f"Concept corrections: {len(concept_corrections)}")
+        
+        icd_corrections = feedback.get("icd_corrections", [])
+        if icd_corrections:
+            summary_parts.append(f"ICD corrections: {len(icd_corrections)}")
+        
+        overall_rating = feedback.get("overall_rating")
+        if overall_rating is not None:
+            summary_parts.append(f"Rating: {overall_rating}/5")
+        
+        comments = feedback.get("comments", "")
+        if comments:
+            summary_parts.append(f"Comments: {comments}")
+        
+        return " | ".join(summary_parts) if summary_parts else "No feedback provided"
+    
+    def generate_improvement_suggestions_with_llm(self, feedback: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate LLM-enhanced improvement suggestions"""
+        if not self.client:
+            return self.generate_improvement_suggestions(feedback)
+        
+        try:
+            feedback_summary = self.prepare_feedback_summary(feedback)
+            
+            prompt = f"""
+Based on this healthcare AI feedback, suggest improvements:
+
+Feedback: {feedback_summary}
+
+Return JSON array:
+[
+    {{
+        "area": "system component",
+        "suggestion": "specific improvement",
+        "priority": "high/medium/low",
+        "implementation": "how to implement"
+    }}
+]
+"""
+
+            if self.llm_provider == "openai":
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=[
+                        {"role": "system", "content": "Return valid JSON array of improvements."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.2,
+                    max_tokens=500
+                )
+                content = response.choices[0].message.content.strip()
+                
+            elif self.llm_provider == "anthropic":
+                response = self.client.messages.create(
+                    model=self.model_name,
+                    max_tokens=500,
+                    temperature=0.2,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                content = response.content[0].text.strip()
+            
+            # Parse JSON response
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+            
+            suggestions = json.loads(content)
+            
+            # Add source and combine with rule-based
+            for suggestion in suggestions:
+                suggestion["source"] = "llm"
+            
+            rule_suggestions = self.generate_improvement_suggestions(feedback)
+            return suggestions + rule_suggestions
+            
+        except Exception as e:
+            self.logger.error(f"LLM suggestions failed: {e}")
+            return self.generate_improvement_suggestions(feedback)
+    
+    def merge_feedback_analysis(self, llm_analysis: Dict[str, Any], rule_analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Merge LLM and rule-based analysis results"""
+        merged = {
+            "common_issues": [],
+            "improvement_areas": [],
+            "accuracy_metrics": rule_analysis.get("accuracy_metrics", {}),
+            "user_satisfaction": {},
+            "analysis_source": "hybrid"
+        }
+        
+        # Use LLM insights if available
+        if llm_analysis.get("source") == "llm":
+            merged["common_issues"] = llm_analysis.get("root_causes", [])
+            merged["improvement_areas"] = llm_analysis.get("priority_areas", [])
+            
+            satisfaction = llm_analysis.get("satisfaction_assessment", {})
+            merged["user_satisfaction"] = {
+                "level": satisfaction.get("level", "fair"),
+                "key_concerns": satisfaction.get("key_concerns", []),
+                "positive_aspects": satisfaction.get("positive_aspects", [])
+            }
+        else:
+            # Fall back to rule-based
+            merged["common_issues"] = rule_analysis.get("common_issues", [])
+            merged["improvement_areas"] = rule_analysis.get("improvement_areas", [])
+            merged["user_satisfaction"] = rule_analysis.get("user_satisfaction", {})
+        
+        self.logger.info(f"Merged analysis from {'LLM + rule-based' if llm_analysis.get('source') == 'llm' else 'rule-based only'}")
+        return merged
     
     def store_feedback(self, feedback: Dict[str, Any]):
         """Store feedback for future learning and analysis"""

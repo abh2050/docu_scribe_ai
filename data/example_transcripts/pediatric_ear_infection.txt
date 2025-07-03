@@ -1,0 +1,29 @@
+Doctor: Hello Mrs. Brown. What seems to be the problem with little Emma today?
+
+Parent: She's been pulling at her right ear and crying a lot, especially at night. She also had a fever of 101 last night.
+
+Doctor: How long has this been going on?
+
+Parent: The ear tugging started about two days ago, but the fever just started yesterday.
+
+Doctor: Has she had any cold symptoms, like runny nose or cough?
+
+Parent: Yes, she's had a runny nose for about a week, and she hasn't been eating well.
+
+Doctor: Has she had any ear infections before?
+
+Parent: Yes, this would be her third one this year. The last one was about two months ago.
+
+Doctor: Let me take a look at her ears. The right eardrum is definitely red and bulging. The left one looks normal. Her throat is a bit red as well, and I can see some nasal discharge.
+
+Parent: Is it another ear infection? Do we need antibiotics again?
+
+Doctor: Yes, she has acute otitis media in her right ear. Given this is her third infection in a short period, we should use antibiotics. But I'm also concerned about the frequent recurrence.
+
+Parent: Should we see a specialist?
+
+Doctor: Let's treat this episode first, but if she has another infection within the next couple of months, we should consider a referral to an ENT to discuss the possibility of ear tubes.
+
+Parent: What about her fever? She was very uncomfortable last night.
+
+Doctor: You can continue with children's acetaminophen or ibuprofen for the fever and pain. Make sure to follow the dosing instructions based on her weight. Keep her hydrated and let me know if the fever persists beyond 48 hours after starting the antibiotics.

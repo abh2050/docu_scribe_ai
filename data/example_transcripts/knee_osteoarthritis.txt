@@ -1,0 +1,27 @@
+Doctor: Hello Mrs. Wilson, what can I help you with today?
+
+Patient: My knees have been really bothering me, doctor. The pain seems to be getting worse over the past few months.
+
+Doctor: Can you describe the pain and when it typically occurs?
+
+Patient: It's a dull aching pain most of the time, but it gets sharp when I go up or down stairs. It's also stiff in the morning for about 30 minutes after I wake up.
+
+Doctor: Does anything make it better or worse?
+
+Patient: It's definitely worse in damp, cold weather. Heat seems to help, and those over-the-counter anti-inflammatory pills - ibuprofen - give me some relief.
+
+Doctor: Have you noticed any swelling or redness around the knee joints?
+
+Patient: Yes, especially after I've been on my feet all day. My right knee swells more than my left.
+
+Doctor: Let me examine your knees. There is some crepitus - that's the grinding sensation - when I move your right knee, and I can feel some fluid. Both knees show signs of inflammation.
+
+Patient: My mother had arthritis. Is that what this could be?
+
+Doctor: Based on your symptoms and examination, this appears consistent with osteoarthritis. Let's get some X-rays to confirm.
+
+Patient: What are the treatment options if it is arthritis?
+
+Doctor: We'll start with non-surgical approaches: physical therapy to strengthen the muscles around your knees, continued anti-inflammatories as needed, and possibly an injection to reduce inflammation. We'll also discuss weight management as that can help reduce strain on your knees.
+
+Patient: That sounds reasonable. I just want to be able to keep up with my grandchildren without this pain.

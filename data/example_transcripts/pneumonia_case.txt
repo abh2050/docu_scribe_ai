@@ -1,0 +1,35 @@
+Doctor: Good afternoon, Ms. Rodriguez. What brings you in today?
+
+Patient: I've had this terrible cough for about a week now, and I'm feeling really tired.
+
+Doctor: Is the cough productive? Are you bringing up any phlegm?
+
+Patient: Yes, and it's thick and greenish.
+
+Doctor: Any fever?
+
+Patient: Yes, I've had a low-grade fever, around 100.4, for the past three days.
+
+Doctor: Any shortness of breath or chest pain?
+
+Patient: I feel a bit short of breath when I walk up stairs, and there's some pain here when I cough hard.
+
+Doctor: Let me listen to your lungs. Take some deep breaths, please. I can hear some crackles in your lower right lung.
+
+Patient: That doesn't sound good. I've also had some chills at night.
+
+Doctor: Your oxygen level is 96% and your temperature right now is 100.2. Are you taking any medications for this?
+
+Patient: Just some over-the-counter cough syrup and Tylenol for the fever.
+
+Doctor: Based on your symptoms and my examination, I'm concerned you may have pneumonia, specifically in your right lower lung.
+
+Patient: Pneumonia? Is that serious?
+
+Doctor: It can be, but we've caught it relatively early. I want to get a chest X-ray to confirm the diagnosis. In the meantime, I'll prescribe an antibiotic called amoxicillin-clavulanate, which should be effective against the most likely bacteria.
+
+Patient: How long will it take for me to feel better?
+
+Doctor: You should start to see improvement within 48 to 72 hours of starting the antibiotics. Complete the entire course, even if you feel better. Rest, stay hydrated, and continue the Tylenol for fever. If your symptoms worsen or you develop increased shortness of breath, contact us immediately.
+
+Patient: Okay, thank you doctor.

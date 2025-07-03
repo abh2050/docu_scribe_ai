@@ -1,0 +1,83 @@
+import streamlit as st
+import pandas as pd
+import os
+from pathlib import Path
+
+def app():
+    st.title("📝 Example Medical Transcripts")
+    
+    st.markdown("""
+    This page provides a collection of example medical transcripts for testing DocuScribe AI. 
+    These examples cover various medical conditions and consultation types.
+    
+    Select a transcript to view it, then click 'Use This Transcript' to load it into the main application.
+    """)
+    
+    # Path to example transcripts
+    example_path = Path("data/example_transcripts")
+    
+    # Get all transcript files
+    transcript_files = list(example_path.glob("*.txt"))
+    
+    # Create a list of transcript names (without extension)
+    transcript_names = [file.stem.replace('_', ' ').title() for file in transcript_files]
+    
+    # Create a DataFrame for display
+    transcript_df = pd.DataFrame({
+        "Transcript": transcript_names,
+        "File": [str(file) for file in transcript_files],
+        "Size (KB)": [round(file.stat().st_size / 1024, 2) for file in transcript_files]
+    })
+    
+    # Display the table
+    st.subheader("Available Transcripts")
+    st.dataframe(transcript_df[["Transcript", "Size (KB)"]], hide_index=True)
+    
+    # Transcript selector
+    selected_transcript = st.selectbox(
+        "Select a transcript to preview:",
+        transcript_names
+    )
+    
+    # Get the file path for the selected transcript
+    selected_index = transcript_names.index(selected_transcript)
+    selected_file = transcript_files[selected_index]
+    
+    # Display the selected transcript
+    try:
+        with open(selected_file, 'r') as f:
+            transcript_text = f.read()
+            
+        st.subheader(f"Preview: {selected_transcript}")
+        st.text_area("Transcript Content", transcript_text, height=400)
+        
+        # Button to use this transcript
+        if st.button("Use This Transcript"):
+            st.session_state.example_transcript = transcript_text
+            st.success(f"Loaded '{selected_transcript}' into the main application")
+            
+    except Exception as e:
+        st.error(f"Failed to load transcript: {e}")
+    
+    # Information about adding new transcripts
+    with st.expander("How to Add New Transcripts"):
+        st.markdown("""
+        To add new example transcripts:
+        
+        1. Create a new text file in the `data/example_transcripts` folder
+        2. Use a descriptive filename like `condition_type.txt` (e.g., `diabetes_followup.txt`)
+        3. Format the transcript as a conversation between doctor and patient
+        4. Restart the Streamlit app to see the new transcript in this list
+        
+        Example format:
+        ```
+        Doctor: Hello, how are you feeling today?
+        
+        Patient: I've been having headaches for the past week.
+        
+        Doctor: I see. Let me examine you...
+        ```
+        """)
+
+if __name__ == "__main__":
+    app()

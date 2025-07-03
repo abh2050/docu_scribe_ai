@@ -1,0 +1,33 @@
+Doctor: Good afternoon, Mr. Roberts. What seems to be the problem today?
+
+Patient: I broke out in these red, itchy hives all over my arms and chest about three hours ago. They're really uncomfortable and seem to be spreading.
+
+Doctor: I see that. When did you first notice the hives, and did anything unusual happen before they appeared?
+
+Patient: I was at lunch with colleagues. About 20 minutes after eating, my skin started feeling itchy, and then I noticed the hives starting to form. I've never had anything like this before.
+
+Doctor: What did you eat for lunch?
+
+Patient: We went to a seafood restaurant. I had the shrimp pasta and a caesar salad. Oh, and I tried someone's crab cake appetizer. I don't eat seafood very often.
+
+Doctor: Any other symptoms besides the hives? Any difficulty breathing, throat tightness, nausea, dizziness, or swelling of your lips or tongue?
+
+Patient: My lips do feel a bit puffy, now that you mention it. And I've been feeling slightly lightheaded, but I thought that was just from being anxious about the hives.
+
+Doctor: Let me check your vital signs. Your blood pressure is slightly low at 100/70, and your heart rate is elevated at 105. I can see the hives are raised and red across your torso and arms, and there is some mild swelling of your lips.
+
+Patient: Is this serious? Should I be worried?
+
+Doctor: You're having an allergic reaction, most likely to the seafood you ate. The combination of hives, lip swelling, and your vital signs suggests this could be progressing toward anaphylaxis, which is a severe allergic reaction. I'm going to give you an injection of epinephrine right away, and then we'll start you on some intravenous antihistamines and steroids.
+
+Patient: Epinephrine? Like an EpiPen?
+
+Doctor: Yes, exactly. It will help reduce the allergic response quickly. We'll also keep you under observation for a few hours to make sure the symptoms don't return. After this, you should avoid eating seafood until you can see an allergist for proper testing.
+
+Patient: Will this happen every time I eat seafood now?
+
+Doctor: Food allergies, especially to seafood, tend to persist. You should consider shellfish a likely allergen for you and avoid it completely until you've had formal allergy testing. I'm going to prescribe you an EpiPen to carry with you at all times, and you should wear a medical alert bracelet indicating your shellfish allergy.
+
+Patient: This is all happening so fast. I never thought I had any food allergies.
+
+Doctor: Allergies can develop at any time, even to foods you've eaten safely before. The good news is that we caught this reaction early, and with proper management and avoidance of the trigger foods, you can prevent future episodes.

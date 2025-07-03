@@ -208,6 +208,26 @@ Doctor: Let me check your blood pressure. *takes blood pressure* Your blood pres
 
 ## 🧪 Testing
 
+### Quick Test - All Systems
+
+Run the complete test suite to verify all components:
+
+```bash
+# Run all tests
+python run_tests.py
+
+# Run specific test suites
+python run_tests.py system    # System integration tests
+python run_tests.py feedback  # FeedbackAgent LLM tests  
+python run_tests.py icd       # ICD mapper tests
+```
+
+### Test Results
+- ✅ **System Integration**: All 7 agents working correctly
+- ✅ **LLM Functionality**: Hybrid LLM + rule-based processing
+- ✅ **Fallback Logic**: Graceful degradation when LLM unavailable
+- ✅ **ICD Mapping**: 74,260+ codes loaded and functional
+
 ### Run with Example Data
 
 The system includes example clinical transcripts:
@@ -227,6 +247,8 @@ from agents.scribe_agent import ScribeAgent
 scribe = ScribeAgent()
 soap_notes = scribe.generate_soap_notes(transcript, segments)
 ```
+
+For detailed testing information, see [`tests/README.md`](tests/README.md).
 
 ## 📊 Performance Metrics
 

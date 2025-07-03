@@ -26,21 +26,42 @@ class ScribeAgent(BaseAgent):
     
     def initialize_llm(self):
         """Initialize the LLM based on the configured provider"""
+        self.client = None  # Initialize client to None first
         try:
             if self.llm_provider == "openai":
+                api_key = os.getenv("OPENAI_API_KEY")
+                if not api_key:
+                    self.logger.warning("OPENAI_API_KEY not found in environment variables")
+                    return
+                    
                 import openai
-                self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                self.client = openai.OpenAI(api_key=api_key)
+                self.logger.info("OpenAI client initialized successfully")
+                
             elif self.llm_provider == "google":
+                api_key = os.getenv("GOOGLE_API_KEY") 
+                if not api_key:
+                    self.logger.warning("GOOGLE_API_KEY not found in environment variables")
+                    return
+                    
                 import google.generativeai as genai
-                genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+                genai.configure(api_key=api_key)
                 self.client = genai.GenerativeModel(self.model_name)
-            elif self.llm_provider == "anthropic":
-                import anthropic
-                self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                self.logger.info("Google client initialized successfully")
+                
         except Exception as e:
-            self.logger.warning(f"Failed to initialize LLM: {e}. Using fallback mode.")
+            self.logger.warning(f"Failed to initialize LLM client: {e}. Using fallback mode.")
             self.client = None
     
+    def get_fallback_result(self) -> Dict[str, Any]:
+        """Provide fallback SOAP notes when processing fails"""
+        return {
+            "subjective": "Unable to process patient-reported information due to technical error.",
+            "objective": "Unable to process objective findings due to technical error.", 
+            "assessment": "Unable to process clinical assessment due to technical error.",
+            "plan": "Unable to process treatment plan due to technical error."
+        }
+
     def generate_soap_notes(self, transcript: str, segments: List[Dict[str, Any]]) -> Dict[str, str]:
         """
         Generate SOAP notes from the clinical transcript
@@ -55,17 +76,14 @@ class ScribeAgent(BaseAgent):
         try:
             self.log_activity("Starting SOAP note generation")
             
-            if self.client is None:
+            # Check if client exists and is properly initialized
+            if not hasattr(self, 'client') or self.client is None:
                 # Fallback to rule-based generation
+                self.logger.warning("LLM client not available, using fallback generation")
                 return self.generate_soap_fallback(transcript, segments)
             
-            # Generate each SOAP section using LLM
-            soap_notes = {}
-            
-            for section in ["subjective", "objective", "assessment", "plan"]:
-                soap_notes[section] = self.generate_soap_section(
-                    section, transcript, segments
-                )
+            # Generate all SOAP sections in a single LLM call for better performance
+            soap_notes = self.generate_complete_soap_notes(transcript, segments)
             
             # Post-process and validate
             soap_notes = self.post_process_soap_notes(soap_notes)
@@ -75,7 +93,9 @@ class ScribeAgent(BaseAgent):
             return soap_notes
             
         except Exception as e:
-            return self.handle_error(e, "SOAP note generation")
+            self.logger.error(f"Error in SOAP generation: {e}")
+            # Return fallback SOAP notes directly instead of error dict
+            return self.generate_soap_fallback(transcript, segments)
     
     def generate_soap_section(self, section: str, transcript: str, segments: List[Dict[str, Any]]) -> str:
         """Generate a specific SOAP section using LLM"""
@@ -172,123 +192,184 @@ Please provide only the {section.upper()} section content, formatted professiona
         
         return prompt
     
+    def generate_complete_soap_notes(self, transcript: str, segments: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Generate all SOAP sections in a single LLM call for better performance"""
+        
+        # Create comprehensive prompt for all sections
+        prompt = self.create_complete_soap_prompt(transcript, segments)
+        
+        try:
+            if self.llm_provider == "openai":
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=[
+                        {"role": "system", "content": self.get_system_prompt()},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=1500,  # Increased for all sections
+                    temperature=0.3
+                )
+                content = response.choices[0].message.content.strip()
+                return self.parse_complete_soap_response(content)
+            
+            elif self.llm_provider == "google":
+                response = self.client.generate_content(
+                    f"{self.get_system_prompt()}\n\n{prompt}",
+                    generation_config={
+                        "max_output_tokens": 1500,
+                        "temperature": 0.3
+                    }
+                )
+                content = response.text.strip()
+                return self.parse_complete_soap_response(content)
+            
+        except Exception as e:
+            self.logger.error(f"Complete SOAP generation failed: {e}")
+            # Fallback to individual section generation
+            return self.generate_soap_sections_individually(transcript, segments)
+    
+    def create_complete_soap_prompt(self, transcript: str, segments: List[Dict[str, Any]]) -> str:
+        """Create a prompt for generating all SOAP sections at once"""
+        
+        prompt = f"""Please analyze the following clinical transcript and generate a complete SOAP note with all four sections.
+
+CLINICAL TRANSCRIPT:
+{transcript}
+
+Please provide your response in the following exact format:
+
+SUBJECTIVE:
+[Extract and summarize what the patient reports about their symptoms, concerns, medical history, and subjective experiences]
+
+OBJECTIVE:
+[Document observable findings, vital signs, physical examination results, and measurable data]
+
+ASSESSMENT:
+[Provide clinical impressions, diagnoses, and assessment of the patient's condition]
+
+PLAN:
+[Outline treatment plans, medications, follow-up instructions, and next steps]
+
+Make sure each section is clearly labeled and contains relevant, medically accurate information from the transcript."""
+
+        return prompt
+    
+    def parse_complete_soap_response(self, content: str) -> Dict[str, str]:
+        """Parse the complete SOAP response into individual sections"""
+        
+        soap_notes = {
+            "subjective": "",
+            "objective": "",
+            "assessment": "",
+            "plan": ""
+        }
+        
+        # Split by section headers
+        sections = content.split('\n')
+        current_section = None
+        current_content = []
+        
+        for line in sections:
+            line = line.strip()
+            if line.upper().startswith('SUBJECTIVE:'):
+                if current_section and current_content:
+                    soap_notes[current_section] = '\n'.join(current_content).strip()
+                current_section = 'subjective'
+                current_content = [line.replace('SUBJECTIVE:', '').strip()]
+            elif line.upper().startswith('OBJECTIVE:'):
+                if current_section and current_content:
+                    soap_notes[current_section] = '\n'.join(current_content).strip()
+                current_section = 'objective'
+                current_content = [line.replace('OBJECTIVE:', '').strip()]
+            elif line.upper().startswith('ASSESSMENT:'):
+                if current_section and current_content:
+                    soap_notes[current_section] = '\n'.join(current_content).strip()
+                current_section = 'assessment'
+                current_content = [line.replace('ASSESSMENT:', '').strip()]
+            elif line.upper().startswith('PLAN:'):
+                if current_section and current_content:
+                    soap_notes[current_section] = '\n'.join(current_content).strip()
+                current_section = 'plan'
+                current_content = [line.replace('PLAN:', '').strip()]
+            elif current_section and line:
+                current_content.append(line)
+        
+        # Don't forget the last section
+        if current_section and current_content:
+            soap_notes[current_section] = '\n'.join(current_content).strip()
+        
+        # Clean up any empty sections
+        for section in soap_notes:
+            if not soap_notes[section]:
+                soap_notes[section] = f"No {section} information available from transcript."
+        
+        return soap_notes
+    
+    def generate_soap_sections_individually(self, transcript: str, segments: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Fallback method to generate sections individually if batch generation fails"""
+        soap_notes = {}
+        
+        for section in ["subjective", "objective", "assessment", "plan"]:
+            soap_notes[section] = self.generate_soap_section(
+                section, transcript, segments
+            )
+        
+        return soap_notes
+
+    def post_process_soap_notes(self, soap_notes: Dict[str, str]) -> Dict[str, str]:
+        """Post-process and validate SOAP notes"""
+        
+        # Clean up formatting
+        for section in soap_notes:
+            if soap_notes[section]:
+                # Remove any section headers that might be duplicated
+                content = soap_notes[section]
+                section_upper = section.upper()
+                if content.upper().startswith(f"{section_upper}:"):
+                    content = content[len(f"{section_upper}:"):].strip()
+                
+                # Clean up extra whitespace
+                content = '\n'.join(line.strip() for line in content.split('\n') if line.strip())
+                soap_notes[section] = content
+            
+            # Ensure no section is completely empty
+            if not soap_notes[section] or soap_notes[section].strip() == "":
+                soap_notes[section] = f"No {section} information available from transcript."
+        
+        return soap_notes
+    
     def generate_soap_fallback(self, transcript: str, segments: List[Dict[str, Any]]) -> Dict[str, str]:
         """Generate SOAP notes using rule-based approach when LLM is unavailable"""
         
+        # Extract content from transcript
+        lines = [line.strip() for line in transcript.split('\n') if line.strip()]
+        
+        # Initialize SOAP sections
         soap_notes = {
-            "subjective": "Patient reports concerns as documented in the conversation. ",
-            "objective": "Clinical findings and measurements as observed. ",
-            "assessment": "Clinical assessment based on presented information. ",
-            "plan": "Treatment and follow-up plan as discussed. "
+            "subjective": "Patient presents with complaints as documented in the encounter.",
+            "objective": "Clinical findings and vital signs as documented.",
+            "assessment": "Assessment based on clinical presentation.",
+            "plan": "Treatment plan and follow-up as discussed."
         }
         
-        # Extract information from segments
-        for segment in segments:
-            text = segment["text"]
-            speaker = segment["speaker"]
-            classification = segment.get("primary_classification", "general")
-            
-            if speaker == "Patient" and classification in ["subjective", "general"]:
-                soap_notes["subjective"] += f"{text[:100]}... "
-            elif speaker == "Doctor":
-                if "blood pressure" in text.lower() or "vital" in text.lower():
-                    soap_notes["objective"] += f"{text[:100]}... "
-                elif any(word in text.lower() for word in ["diagnosis", "assessment", "think", "likely"]):
-                    soap_notes["assessment"] += f"{text[:100]}... "
-                elif any(word in text.lower() for word in ["prescribe", "continue", "follow up", "recommend"]):
-                    soap_notes["plan"] += f"{text[:100]}... "
+        # Try to extract some basic information
+        patient_statements = []
+        for line in lines:
+            if 'patient:' in line.lower():
+                content = line.split(':', 1)[1].strip()
+                patient_statements.append(content)
+        
+        if patient_statements:
+            soap_notes["subjective"] = "Patient reports: " + ". ".join(patient_statements[:3])
         
         return soap_notes
     
     def generate_section_fallback(self, section: str, transcript: str, segments: List[Dict[str, Any]]) -> str:
-        """Generate improved fallback content for a specific SOAP section using transcript and segments."""
-        if not segments:
-            return "No information available."
-        if section == "subjective":
-            complaints = [s["text"] for s in segments if s.get("speaker", "").lower() == "patient"]
-            if complaints:
-                return "Patient reports: " + "; ".join(complaints)
-            return "Patient's subjective complaints as described in the encounter."
-        elif section == "objective":
-            findings = [s["text"] for s in segments if s.get("speaker", "").lower() == "doctor" and any(word in s["text"].lower() for word in ["blood pressure", "exam", "findings", "vital", "measurement"])]
-            if findings:
-                return "Exam findings: " + "; ".join(findings)
-            return "Physical examination findings and vital signs as documented during the encounter."
-        elif section == "assessment":
-            # Try to infer assessment from doctor's statements
-            assessments = [s["text"] for s in segments if s.get("speaker", "").lower() == "doctor" and any(word in s["text"].lower() for word in ["diagnosis", "impression", "likely", "assessment", "condition"])]
-            if assessments:
-                return "Assessment: " + "; ".join(assessments)
-            return "Clinical assessment and diagnostic impressions based on the presented information."
-        elif section == "plan":
-            plans = [s["text"] for s in segments if s.get("speaker", "").lower() == "doctor" and any(word in s["text"].lower() for word in ["plan", "prescribe", "medication", "follow up", "return", "schedule", "continue", "start", "stop", "increase", "decrease", "refer", "recommend", "instructions"])]
-            if plans:
-                return "Plan: " + "; ".join(plans)
-            return "Treatment plan and follow-up instructions as discussed with the patient."
-        return "Information not available for this section."
-    
-    def post_process_soap_notes(self, soap_notes: Dict[str, str]) -> Dict[str, str]:
-        """Post-process and validate the generated SOAP notes"""
-        
-        processed_notes = {}
-        
-        for section, content in soap_notes.items():
-            # Clean up the content
-            content = content.strip()
-            
-            # Ensure minimum content length
-            if len(content) < 10:
-                content = self.generate_section_fallback(section, "", [])
-            
-            # Format consistently
-            if not content.endswith('.'):
-                content += '.'
-            
-            # Capitalize first letter
-            if content and content[0].islower():
-                content = content[0].upper() + content[1:]
-            
-            processed_notes[section] = content
-        
-        return processed_notes
-    
-    def validate_soap_completeness(self, soap_notes: Dict[str, str]) -> Dict[str, Any]:
-        """Validate the completeness and quality of generated SOAP notes"""
-        
-        validation_results = {
-            "is_complete": True,
-            "missing_sections": [],
-            "quality_score": 0.0,
-            "recommendations": []
+        """Generate fallback content for a specific section"""
+        fallback_content = {
+            "subjective": "Patient presents with complaints as documented in the encounter.",
+            "objective": "Clinical findings and measurements as documented.",
+            "assessment": "Clinical assessment based on presentation.",
+            "plan": "Treatment plan and follow-up as discussed."
         }
-        
-        required_sections = ["subjective", "objective", "assessment", "plan"]
-        
-        for section in required_sections:
-            if section not in soap_notes or len(soap_notes[section].strip()) < 10:
-                validation_results["missing_sections"].append(section)
-                validation_results["is_complete"] = False
-        
-        # Calculate quality score
-        total_length = sum(len(content) for content in soap_notes.values())
-        if total_length > 200:
-            validation_results["quality_score"] = min(1.0, total_length / 500)
-        else:
-            validation_results["quality_score"] = 0.3
-        
-        # Add recommendations
-        if validation_results["missing_sections"]:
-            validation_results["recommendations"].append(
-                f"Consider adding content to: {', '.join(validation_results['missing_sections'])}"
-            )
-        
-        return validation_results
-    
-    def get_fallback_result(self) -> Dict[str, str]:
-        """Provide fallback SOAP notes when generation fails"""
-        return {
-            "subjective": "Unable to process patient-reported information due to technical error.",
-            "objective": "Unable to process objective findings due to technical error.",
-            "assessment": "Unable to process clinical assessment due to technical error.", 
-            "plan": "Unable to process treatment plan due to technical error."
-        }
+        return fallback_content.get(section, f"No {section} information available.")
