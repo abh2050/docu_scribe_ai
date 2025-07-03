@@ -42,6 +42,26 @@ The system follows an agentic architecture with specialized agents for different
 └───────────┘   └──────────────┘   └─────────────┘
 ```
 
+### Updated Agent Roles
+
+- **Transcription Agent**: Converts audio or text input into structured transcripts.
+- **Context Agent**: Analyzes transcripts to extract SOAP note context.
+- **Scribe Agent**: Generates SOAP notes using LLMs.
+- **Concept Agent**: Extracts medical concepts using NER and UMLS.
+- **ICD Mapper Agent**: Maps extracted concepts to ICD-10 codes.
+- **Feedback Agent**: Processes user feedback for corrections and improvements.
+- **Formatter Agent**: Formats the final output into FHIR-compliant JSON or other formats.
+
+### Agents Overview
+
+1. **Transcription Agent**: Converts audio or text input into structured clinical transcripts.
+2. **Context Agent**: Analyzes the transcript to identify key segments and context.
+3. **Scribe Agent**: Generates SOAP notes using LLMs.
+4. **Concept Agent**: Extracts medical concepts such as symptoms, medications, and vitals.
+5. **ICD Mapper Agent**: Maps extracted concepts to ICD-10 codes.
+6. **Feedback Agent**: Processes user feedback to improve accuracy and relevance.
+7. **Formatter Agent**: Formats the final output into FHIR-compliant JSON or other formats.
+
 ## 🚀 Features
 
 ### Core Capabilities
