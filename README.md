@@ -1,9 +1,10 @@
+![](https://github.com/abh2050/docu_scribe_ai/blob/main/assets/ChatGPT%20Image%20Jun%2028%2C%202025%2C%2003_27_16%20PM.png)
 # 🩺 DocuScribe AI - Agentic Ambient Scribing System
 
 DocuScribe AI is an intelligent, agentic system that transforms clinical conversations into structured medical documentation. Using advanced LLM orchestration and medical knowledge systems, it generates SOAP notes, extracts medical concepts, and suggests ICD-10 codes while maintaining human oversight through an intuitive feedback loop.
 
 ## Presentation
-https://gemini.google.com/share/9d8256f3071f
+https://abh2050.github.io/docu_scribe_ai/
 
 ## 🎯 Project Overview
 
@@ -82,7 +83,7 @@ The system follows an agentic architecture with specialized agents for different
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/abh2050/docu_scribe_ai.git
 cd docu_sciibe_ai
 ```
 
@@ -302,8 +303,6 @@ streamlit run app.py
 docker build -t docuscribe-ai .
 docker run -p 8501:8501 docuscribe-ai
 
-# Using cloud platforms (AWS, GCP, Azure)
-# See deployment guides in /docs folder
 ```
 
 ## 🤝 Contributing
@@ -316,7 +315,7 @@ docker run -p 8501:8501 docuscribe-ai
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License
 
 ## 🙏 Acknowledgments
 
@@ -324,13 +323,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **ICD-10 Codes**: WHO International Classification of Diseases
 - **FHIR Standards**: HL7 FHIR Implementation Guide
 - **LLM Providers**: OpenAI, Google, Anthropic for powerful language models
-
-## 📞 Support
-
-For questions, issues, or contributions:
-- Create an issue on GitHub
-- Email: support@docuscribe.ai
-- Documentation: [docs.docuscribe.ai](https://docs.docuscribe.ai)
 
 ## 🔮 Roadmap
 
@@ -346,7 +338,3 @@ For questions, issues, or contributions:
 - [ ] Predictive health analytics
 - [ ] Population health metrics
 - [ ] Advanced privacy controls (differential privacy)
-
----
-
-**Built with ❤️ for healthcare providers to spend more time with patients and less time with paperwork.**
