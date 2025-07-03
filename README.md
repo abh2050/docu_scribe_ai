@@ -86,7 +86,7 @@ The system follows an agentic architecture with specialized agents for different
 | **Frontend** | Streamlit (Interactive Web UI) |
 | **Backend** | Python + FastAPI |
 | **LLM Integration** | OpenAI GPT-4, Google Gemini, Anthropic Claude |
-| **Agent Framework** | LangChain + LangGraph |
+| **Agent Framework** | LangChain (Manual Orchestration) |
 | **Medical Knowledge** | UMLS API + Custom Medical Vocabularies |
 | **Code Mapping** | ICD-10 CSV + Fuzzy String Matching |
 | **Output Formats** | FHIR R4, HL7, JSON Schema |
@@ -352,9 +352,35 @@ This project is licensed under the MIT License
 - [ ] Multi-language support
 - [ ] Advanced clinical decision support
 - [ ] Integration with major EHR systems
+- [ ] **LangGraph Pipeline Integration** - Graph-based agent orchestration for improved performance and debugging
 
 ### Version 3.0
 - [ ] AI-powered clinical insights
 - [ ] Predictive health analytics
 - [ ] Population health metrics
 - [ ] Advanced privacy controls (differential privacy)
+
+## 🚀 LangGraph Integration (Optional)
+
+The system supports an optional LangGraph-based pipeline for advanced agent orchestration:
+
+### Benefits:
+- **Parallel Processing**: Run independent agents simultaneously
+- **Better Error Handling**: Robust error recovery and retry mechanisms  
+- **Workflow Visualization**: Graph-based representation of agent relationships
+- **Conditional Routing**: Smart routing based on processing results
+- **Improved Debugging**: Built-in execution tracing and monitoring
+
+### Quick Start:
+```bash
+# Install LangGraph
+pip install langgraph
+
+# Set pipeline mode
+export PIPELINE_MODE=langgraph
+
+# Run with LangGraph
+streamlit run app_with_langgraph.py
+```
+
+For detailed integration instructions, see [`LANGGRAPH_INTEGRATION_GUIDE.md`](LANGGRAPH_INTEGRATION_GUIDE.md).
